@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Drawing;
+
 
 namespace Project_Info
 {
@@ -29,6 +31,8 @@ namespace Project_Info
 
                 }
             }
+            Color myColor = Color.FromArgb(255, 181, 178);
+            string hex = myColor.R.ToString("X2") + myColor.G.ToString("X2") + myColor.B.ToString("X2");
         }
 
         public static int ConvertToInt(IEnumerable<byte> data)
