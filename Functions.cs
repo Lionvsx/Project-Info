@@ -13,11 +13,12 @@ namespace Project_Info
             //myfile est un vecteur composé d'octets représentant les métadonnées et les données de l'image
            
             //Métadonnées du fichier
-            Console.WriteLine("\n Header \n");
-            for (int i = 0; i < 14; i++)
-                Console.Write(myfile[i] + " ");
+            byte[] sign = {myfile[0],myfile[1]};
+            byte[] fsize = {myfile[2], myfile[3], myfile[4], myfile[5]};
+            byte[] off = {myfile[10], myfile[11], myfile[12], myfile[13]};
+            
+            
             //Métadonnées de l'image
-            Console.WriteLine("\n HEADER INFO \n");
             for (int i = 14; i< 54; i++)
                 Console.Write(myfile[i] + " ");
         }
