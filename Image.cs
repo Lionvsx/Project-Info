@@ -6,7 +6,7 @@ namespace Project_Info
         private int _size;
         private int _offset;
         private int _height;
-        private int width;
+        private int _width;
         private int _bitRgb;
         private Pixel[,] _image;
 
@@ -36,8 +36,8 @@ namespace Project_Info
 
         public int Width
         {
-            get => width;
-            set => width = value;
+            get => _width;
+            set => _width = value;
         }
 
         public int BitRgb
@@ -58,7 +58,7 @@ namespace Project_Info
             this._size = size;
             this._offset = offset;
             this._height = height;
-            this.width = width;
+            this._width = width;
             _bitRgb = bitRgb;
             this._image = imge;
         }
