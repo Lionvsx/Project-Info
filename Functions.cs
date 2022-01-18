@@ -13,9 +13,9 @@ namespace Project_Info
         {
             byte[] myfile = File.ReadAllBytes(path);
             //myfile est un vecteur composé d'octets représentant les métadonnées et les données de l'image
-           
+
             //Métadonnées du fichier
-            byte[] sign = {myfile[0],myfile[1]};
+            byte[] sign = {myfile[0], myfile[1]};
             byte[] fsize = {myfile[2], myfile[3], myfile[4], myfile[5]};
             byte[] off = {myfile[10], myfile[11], myfile[12], myfile[13]};
             //Métadonnées de l'image
@@ -27,13 +27,44 @@ namespace Project_Info
             {
                 for (int j = i; j < i + ConvertToInt(wid); j++)
                 {
-                    
+
 
                 }
             }
-            
-        }
 
+        }
+        public static byte[] WriteImage(Image im)
+        {
+            List<byte> file = new List<byte>();
+            
+            List<byte> size2 = new List<byte>(){};
+            file.Concat()
+            for (int i = 0; i < ConvertToendian(im.Size,4).Length; i++)
+            {
+                file.Add(ConvertToendian(im.Size,4)[i]);
+            }
+
+            for (int i = 0; i < ConvertToendian(im.Offset, 4).Length; i++)
+            {
+                file.Add(ConvertToendian(im.Offset, 4)[i]);
+            }
+
+            for (int i = 0; i < ConvertToendian(im.Height,4).Length; i++)
+            {
+                file.Add(ConvertToendian(im.Height,4)[i]);
+            }
+            
+            for (int i = 0; i < ConvertToendian(im.Width,4).Length; i++)
+            {
+                file.Add(ConvertToendian(im.Width,4)[i]);
+            }
+            
+            for (int i = 0; i < ConvertToendian(im.BitRgb,2).Length; i++)
+            {
+                file.Add(ConvertToendian(im.BitRgb,2)[i]);
+            }
+        }
+        
         public static int ConvertToInt(IEnumerable<byte> data)
         {
             int result = 0;
@@ -45,9 +76,9 @@ namespace Project_Info
             }
             return result;
         }
-        public static byte[] ConvertToendian(int data)
+        public static byte[] ConvertToendian(int data, int size)
         {
-            byte[] endian = new byte[4];
+            byte[] endian = new byte[size];
             for (var i = 3; i >= 0; i--)
             {
                 endian[i] = Convert.ToByte(data % Convert.ToInt32(Math.Pow(256,i )));
