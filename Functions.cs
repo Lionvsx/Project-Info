@@ -45,5 +45,15 @@ namespace Project_Info
             }
             return result;
         }
+        public static byte[] ConvertToendian(int data)
+        {
+            byte[] endian = new byte[4];
+            for (var i = 3; i >= 0; i--)
+            {
+                endian[i] = Convert.ToByte(data % Convert.ToInt32(Math.Pow(256,i )));
+                data -= endian[i] * Convert.ToInt32(Math.Pow(256, i));
+            }
+            return endian;
+        }
     }
 }

@@ -41,7 +41,6 @@ namespace Project_Info
                 string hex = myColor.R.ToString("X2") + myColor.G.ToString("X2") + myColor.B.ToString("X2");
                 return hex;
             }
-            set => throw new System.NotImplementedException();
         }
     }
 }
