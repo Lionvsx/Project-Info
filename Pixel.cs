@@ -37,7 +37,7 @@ namespace Project_Info
         {
             get
             {
-                Color myColor = Color.FromArgb(this.Red, this.Green, this.Blue);
+                Color myColor = Color.FromArgb(_red, _green, _blue);
                 string hex = myColor.R.ToString("X2") + myColor.G.ToString("X2") + myColor.B.ToString("X2");
                 return hex;
             }
