@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace Project_Info
 {
     public class Pixel
@@ -31,12 +33,15 @@ namespace Project_Info
             set => _green = value;
         }
 
-        public int HexString
+        public string HexString
         {
             get
             {
-                return Chiffre;
+                Color myColor = Color.FromArgb(this.Red, this.Green, this.Blue);
+                string hex = myColor.R.ToString("X2") + myColor.G.ToString("X2") + myColor.B.ToString("X2");
+                return hex;
             }
+            set => throw new System.NotImplementedException();
         }
     }
 }
