@@ -31,38 +31,9 @@ namespace Project_Info
 
                 }
             }
-
-            return;
+            
         }
 
-        public static byte[] WriteImage(Image im)
-        {
-            List<byte> file = new List<byte>();
-            for (int i = 0; i < ConvertToendian(im.Size,4).Length; i++)
-            {
-                file.Add(ConvertToendian(im.Size,4)[i]);
-            }
-
-            for (int i = 0; i < ConvertToendian(im.Offset, 4).Length; i++)
-            {
-                file.Add(ConvertToendian(im.Offset, 4)[i]);
-            }
-
-            for (int i = 0; i < ConvertToendian(im.Height,4).Length; i++)
-            {
-                file.Add(ConvertToendian(im.Height,4)[i]);
-            }
-            
-            for (int i = 0; i < ConvertToendian(im.Width,4).Length; i++)
-            {
-                file.Add(ConvertToendian(im.Width,4)[i]);
-            }
-            
-            for (int i = 0; i < ConvertToendian(im.BitRgb,2).Length; i++)
-            {
-                file.Add(ConvertToendian(im.BitRgb,2)[i]);
-            }
-        }
         public static int ConvertToInt(IEnumerable<byte> data)
         {
             int result = 0;
@@ -74,9 +45,9 @@ namespace Project_Info
             }
             return result;
         }
-        public static byte[] ConvertToendian(int data, int size)
+        public static byte[] ConvertToendian(int data)
         {
-            byte[] endian = new byte[size];
+            byte[] endian = new byte[4];
             for (var i = 3; i >= 0; i--)
             {
                 endian[i] = Convert.ToByte(data % Convert.ToInt32(Math.Pow(256,i )));
