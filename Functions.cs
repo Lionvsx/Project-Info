@@ -16,11 +16,19 @@ namespace Project_Info
             byte[] sign = {myfile[0],myfile[1]};
             byte[] fsize = {myfile[2], myfile[3], myfile[4], myfile[5]};
             byte[] off = {myfile[10], myfile[11], myfile[12], myfile[13]};
-            
-            
             //Métadonnées de l'image
-            for (int i = 14; i< 54; i++)
-                Console.Write(myfile[i] + " ");
+            byte[] wid = {myfile[18], myfile[19], myfile[20], myfile[21]};
+            byte[] hei = {myfile[22], myfile[23], myfile[24], myfile[25]};
+            byte[] bpp = {myfile[28], myfile[29]};
+            //L'image elle-même
+            for (int i = 54; i < myfile.Length; i = i + ConvertToInt(wid))
+            {
+                for (int j = i; j < i + ConvertToInt(wid); j++)
+                {
+                    
+
+                }
+            }
         }
 
         public static int ConvertToInt(IEnumerable<byte> data)
