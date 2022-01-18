@@ -10,6 +10,7 @@ namespace Project_Info
             Console.WriteLine("Hello World!");
             Bitmap test = new Bitmap();
 
+
         }
     }
 }
