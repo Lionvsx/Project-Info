@@ -9,7 +9,7 @@ namespace Project_Info
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            Bitmap test = new Bitmap();
+            
 
 
         }
