@@ -30,5 +30,13 @@ namespace Project_Info
             get => _green;
             set => _green = value;
         }
+
+        public int HexString
+        {
+            get
+            {
+                return Chiffre;
+            }
+        }
     }
 }
