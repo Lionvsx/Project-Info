@@ -2,36 +2,36 @@ namespace Project_Info
 {
     public class Image
     {
-        private string type;
-        private int size;
-        private int offset;
-        private int height;
+        private string _type;
+        private int _size;
+        private int _offset;
+        private int _height;
         private int width;
-        private int bitRGB;
-        private Pixel[,] imge;
+        private int _bitRgb;
+        private Pixel[,] _image;
 
         public string Type
         {
-            get => type;
-            set => type = value;
+            get => _type;
+            set => _type = value;
         }
 
         public int Size
         {
-            get => size;
-            set => size = value;
+            get => _size;
+            set => _size = value;
         }
 
         public int Offset
         {
-            get => offset;
-            set => offset = value;
+            get => _offset;
+            set => _offset = value;
         }
 
         public int Height
         {
-            get => height;
-            set => height = value;
+            get => _height;
+            set => _height = value;
         }
 
         public int Width
@@ -42,25 +42,25 @@ namespace Project_Info
 
         public int BitRgb
         {
-            get => bitRGB;
-            set => bitRGB = value;
+            get => _bitRgb;
+            set => _bitRgb = value;
         }
 
-        public Pixel[,] Imge
+        public Pixel[,] ImageData
         {
-            get => imge;
-            set => imge = value;
+            get => _image;
+            set => _image = value;
         }
 
         public Image(string type, int size, int offset, int height, int width, int bitRgb, Pixel[,] imge)
         {
-            this.type = type;
-            this.size = size;
-            this.offset = offset;
-            this.height = height;
+            this._type = type;
+            this._size = size;
+            this._offset = offset;
+            this._height = height;
             this.width = width;
-            bitRGB = bitRgb;
-            this.imge = imge;
+            _bitRgb = bitRgb;
+            this._image = imge;
         }
     }
 }
