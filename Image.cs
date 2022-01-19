@@ -56,6 +56,17 @@ namespace Project_Info
             set => _image = value;
         }
 
+        public Image(Image im)
+        {
+            this._type = im.Type;
+            this._size = im.Size;
+            this._offset = im.Offset;
+            this._height = im.Height;
+            this._width = im.Width;
+            _bitRgb = im.BitRgb;
+            this._image = im.ImageData;
+        }
+
         public Image(string type, int size, int offset, int height, int width, int bitRgb, Pixel[,] imge)
         {
             this._type = type;

@@ -208,5 +208,25 @@ namespace Project_Info
 
             File.WriteAllBytes("./Images/Sortie.bmp", myfile);
         }
+
+        public static Image rgbtogrey(Image im)
+        {
+            Image imgrey = new Image(im);
+            for (int i = 0; i < im.Height; i++)
+            {
+                for (int j = 0; j < im.Width; j++)
+                {
+                    //Apply conversion equation
+                    byte gray = (byte)(.21 * im.ImageData[i,j].Red + .71 * im.ImageData[i,j].Green + .071 * im.ImageData[i,j].Blue);
+
+                    //Set the color of this pixel
+                    imgrey.ImageData[i, j].Red = gray;
+                    imgrey.ImageData[i, j].Green = gray;
+                    imgrey.ImageData[i, j].Blue = gray;
+                    
+                }
+            }
+            return imgrey;
+        }
     }
 }
