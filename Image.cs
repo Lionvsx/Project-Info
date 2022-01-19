@@ -81,6 +81,34 @@ namespace Project_Info
             }
         }
 
+        public void Rotate90()
+        {
+            var newImage = new Pixel[_image.GetLength(1), _image.GetLength(0)];
+            for (var line = 0; line < newImage.GetLength(0); line++)
+            {
+                for (var col = 0; col < newImage.GetLength(1); col++)
+                {
+                    newImage[col, _image.GetLength(1) - line] = _image[line, col];
+                }
+            }
+            
+            _image = newImage;
+        }
+
+        public void Maximize(int factor)
+        {
+            var newImage = new Pixel[_image.GetLength(0) * factor, _image.GetLength(1) * factor];
+            for (var line = 0; line < newImage.GetLength(0); line++)
+            {
+                for (var col = 0; col < newImage.GetLength(1); col++)
+                {
+                    newImage[line, col] = _image[line / factor, col / factor];
+                }
+            }
+            
+            _image = newImage;
+        }
+
 
     }
 }
