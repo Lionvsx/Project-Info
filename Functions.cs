@@ -33,7 +33,7 @@ namespace Project_Info
             image.Height = ConvertToInt(hei);
             image.Width = ConvertToInt(wid);
             image.Offset = ConvertToInt(off);
-            image.Size = image.Height * image.Width * 3 + image.Offset;
+            
             image.BitRgb = ConvertToInt(bpp);
             
 

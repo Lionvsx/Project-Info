@@ -20,6 +20,13 @@ namespace Project_Info
             
         }
 
+        public Pixel(Pixel pixel)
+        {
+            _red = pixel.Red;
+            _green = pixel.Green;
+            _blue = pixel.Blue;
+        }
+
         public int Red
         {
             get => _red;

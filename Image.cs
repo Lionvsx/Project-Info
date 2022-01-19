@@ -23,8 +23,7 @@ namespace Project_Info
 
         public int Size
         {
-            get => _size;
-            set => _size = value;
+            get => _height * _width * 3 + _offset;
         }
 
         public int Offset
@@ -102,13 +101,12 @@ namespace Project_Info
             {
                 for (var col = 0; col < newImage.GetLength(1); col++)
                 {
-                    newImage[line, col] = _image[line / factor, col / factor];
+                    newImage[line, col] = new Pixel(_image[line / factor, col / factor]);
                 }
             }
-            
+            _height *= factor;
+            _width *= factor;
             _image = newImage;
         }
-
-
     }
 }
