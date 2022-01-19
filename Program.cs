@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 
 namespace Project_Info
 {
@@ -14,6 +15,9 @@ namespace Project_Info
             var test2 = Functions.ReadImage(@"../../../images/Test.bmp");
             test2.DisplayImage();
             Console.WriteLine(test2);
+            var myfile = Functions.WriteImage(test2);
+            Functions.DisplayBmp(myfile);
+            Console.WriteLine(myfile);
         }
     }
 }

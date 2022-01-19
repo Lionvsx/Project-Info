@@ -166,5 +166,30 @@ namespace Project_Info
             }
             return endian;
         }
+        public static void DisplayBmp(byte[] myfile)
+        {
+            
+            //Métadonnées du fichier
+            Console.WriteLine("\n Header \n");
+            for (int i = 0; i < 14; i++)
+                Console.Write(myfile[i] + " ");
+            //Métadonnées de l'image
+            Console.WriteLine("\n HEADER INFO \n");
+            for (int i = 14; i< 54; i++)
+                Console.Write(myfile[i] + " ");
+            //L'image elle-même
+            Console.WriteLine("\n IMAGE \n");
+            for (int i = 54; i < myfile.Length; i = i + 60)
+            {
+                for (int j = i; j < i + 60; j++)
+                {
+                    Console.Write("{0:D3} ",myfile[j]);
+
+                }
+                Console.WriteLine();
+            }
+
+            File.WriteAllBytes("./Images/Sortie.bmp", myfile);
+        }
     }
 }
