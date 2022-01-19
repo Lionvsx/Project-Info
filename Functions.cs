@@ -9,6 +9,11 @@ namespace Project_Info
 {
     public static class Functions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static Image ReadImage(string path)
         {
             var image = new Image();
@@ -67,53 +72,58 @@ namespace Project_Info
 
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="im"></param>
+        /// <returns></returns>
         public static byte[] WriteImage(Image im)
         {
             var file = new List<byte>();
-            byte vide = Byte.MinValue;
-            byte B = 66;
-            byte M = 77;
-            List<byte> type = new List<byte>(){B, M};
-            List<byte> size2 = new List<byte>(){vide, vide};
-            List<byte> size4 = new List<byte>(){vide, vide, vide, vide};
+            const byte vide = byte.MinValue;
+            const int b = 66;
+            const int m = 77;
+            var type = new List<byte>(){b, m};
+            var size2 = new List<byte>(){vide, vide};
+            var size4 = new List<byte>(){vide, vide, vide, vide};
             
             file = (List<byte>) file.Concat(type);
-            for (int i = 0; i < ConvertToendian(im.Size,4).Length; i++)
+            for (var i = 0; i < ConvertToEndian(im.Size,4).Length; i++)
             {
-                file.Add(ConvertToendian(im.Size,4)[i]);
+                file.Add(ConvertToEndian(im.Size,4)[i]);
             }
             
             file = (List<byte>) file.Concat(size4);
             
-            for (int i = 0; i < ConvertToendian(im.Offset, 4).Length; i++)
+            for (var i = 0; i < ConvertToEndian(im.Offset, 4).Length; i++)
             {
-                file.Add(ConvertToendian(im.Offset, 4)[i]);
+                file.Add(ConvertToEndian(im.Offset, 4)[i]);
             }
             
             file = (List<byte>) file.Concat(size4);
             
-            for (int i = 0; i < ConvertToendian(im.Width,4).Length; i++)
+            for (var i = 0; i < ConvertToEndian(im.Width,4).Length; i++)
             {
-                file.Add(ConvertToendian(im.Width,4)[i]);
+                file.Add(ConvertToEndian(im.Width,4)[i]);
             }
             
-            for (int i = 0; i < ConvertToendian(im.Height,4).Length; i++)
+            for (var i = 0; i < ConvertToEndian(im.Height,4).Length; i++)
             {
-                file.Add(ConvertToendian(im.Height,4)[i]);
+                file.Add(ConvertToEndian(im.Height,4)[i]);
             }
             file  = (List<byte>) file.Concat(size2);
-            for (int i = 0; i < ConvertToendian(im.BitRgb, 2).Length; i++)
+            for (var i = 0; i < ConvertToEndian(im.BitRgb, 2).Length; i++)
             {
-                file.Add(ConvertToendian(im.BitRgb, 2)[i]);
+                file.Add(ConvertToEndian(im.BitRgb, 2)[i]);
             }
-            for (int i = 0; i < 6; i++)
+            for (var i = 0; i < 6; i++)
             {
                 file = (List<byte>) file.Concat(size4);
             }
 
-            for (int i = im.ImageData.GetLength(0) - 1; i >= 0; i--)
+            for (var i = im.ImageData.GetLength(0) - 1; i >= 0; i--)
             {
-                for (int j = 0; j < im.ImageData.GetLength(1); j++)
+                for (var j = 0; j < im.ImageData.GetLength(1); j++)
                 {
                     file.Add(Convert.ToByte(im.ImageData[i,j].Red));
                     file.Add(Convert.ToByte(im.ImageData[i,j].Green));
@@ -123,9 +133,14 @@ namespace Project_Info
             return file.ToArray();
         }
         
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public static int ConvertToInt(IEnumerable<byte> data)
         {
-            int result = 0;
+            var result = 0;
             var enumerable = data.ToList();
             for (var i = 0; i < enumerable.Count; i++)
             {
@@ -134,9 +149,15 @@ namespace Project_Info
             }
             return result;
         }
-        public static byte[] ConvertToendian(int data, int size)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public static byte[] ConvertToEndian(int data, int size)
         {
-            byte[] endian = new byte[size];
+            var endian = new byte[size];
             for (var i = 3; i >= 0; i--)
             {
                 endian[i] = Convert.ToByte(data % Convert.ToInt32(Math.Pow(256,i )));

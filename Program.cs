@@ -11,7 +11,7 @@ namespace Project_Info
             Console.WriteLine("Hello World!");
             var test = new byte[] {255, 0, 0, 0};
             Console.WriteLine(Functions.ConvertToInt(test));
-            var test2 = Functions.ReadImage(@"../../../images/coco.bmp");
+            var test2 = Functions.ReadImage(@"../../../images/Test.bmp");
             test2.DisplayImage();
             Console.WriteLine(test2);
         }

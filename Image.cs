@@ -70,9 +70,9 @@ namespace Project_Info
 
         public void DisplayImage()
         {
-            for (int i = 0; i < _height; i++)
+            for (var i = 0; i < _height; i++)
             {
-                for (int j = 0; j < _width; j++)
+                for (var j = 0; j < _width; j++)
                 {
                     Console.BackgroundColor = _image[i, j].HexString == "000000" ? ConsoleColor.Black : ConsoleColor.White;
                     Console.Write(" ");
