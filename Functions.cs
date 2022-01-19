@@ -11,26 +11,56 @@ namespace Project_Info
     {
         public static Image ReadImage(string path)
         {
+            var image = new Image();
+            
             byte[] myfile = File.ReadAllBytes(path);
             //myfile est un vecteur composé d'octets représentant les métadonnées et les données de l'image
-
+           
             //Métadonnées du fichier
-            byte[] sign = {myfile[0], myfile[1]};
+            byte[] sign = {myfile[0],myfile[1]};
             byte[] fsize = {myfile[2], myfile[3], myfile[4], myfile[5]};
             byte[] off = {myfile[10], myfile[11], myfile[12], myfile[13]};
             //Métadonnées de l'image
             byte[] wid = {myfile[18], myfile[19], myfile[20], myfile[21]};
             byte[] hei = {myfile[22], myfile[23], myfile[24], myfile[25]};
             byte[] bpp = {myfile[28], myfile[29]};
+
+            image.Height = ConvertToInt(hei);
+            image.Width = ConvertToInt(wid);
+            image.Size = ConvertToInt(fsize);
+            image.Offset = ConvertToInt(off);
+            image.BitRgb = ConvertToInt(bpp);
+
+            var imageData = new Pixel[image.Height,image.Width];
+            
             //L'image elle-même
-            for (int i = 54; i < myfile.Length; i = i + ConvertToInt(wid))
+            var line = 0;
+            var emptyBytes = 4 - image.Width % 4;
+            for (var i = 54; i < myfile.Length; i = i + (image.Width + emptyBytes))
             {
-                for (int j = i; j < i + ConvertToInt(wid); j++)
+                var col = 0;
+                for (var j = i; j < i + image.Width; j++)
                 {
-
-
+                    switch (col % 3)
+                    {
+                        case 0:
+                            //imageData[line, col / 3] = new Pixel();
+                            imageData[line, col / 3].Red = myfile[i + j];
+                            break;
+                        case 1:
+                            imageData[line, col / 3].Green = myfile[i + j];
+                            break;
+                        case 2:
+                            imageData[line, col / 3].Blue = myfile[i + j];
+                            break;
+                    }
+                    ++col;
                 }
+
+                ++line;
             }
+
+            return image;
 
         }
         
