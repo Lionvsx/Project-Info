@@ -10,6 +10,9 @@ namespace Project_Info
         private int _bitRgb;
         private Pixel[,] _image;
 
+        public Image()
+        {
+        }
         public string Type
         {
             get => _type;
