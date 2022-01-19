@@ -88,7 +88,7 @@ namespace Project_Info
             {
                 for (var col = 0; col < newImage.GetLength(1); col++)
                 {
-                    newImage[col, _image.GetLength(1) - line] = _image[line, col];
+                    newImage[col, (_image.GetLength(1) - 1) - line] = _image[line, col];
                 }
             }
             
