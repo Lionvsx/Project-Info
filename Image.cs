@@ -80,17 +80,35 @@ namespace Project_Info
             }
         }
 
-        public void Rotate90()
+        public void Rotate90R()
         {
             var newImage = new Pixel[_image.GetLength(1), _image.GetLength(0)];
-            for (var line = 0; line < newImage.GetLength(0); line++)
+            for (var line = 0; line < _image.GetLength(0); line++)
             {
-                for (var col = 0; col < newImage.GetLength(1); col++)
+                for (var col = 0; col < _image.GetLength(1); col++)
                 {
-                    newImage[col, (_image.GetLength(1) - 1) - line] = _image[line, col];
+                    newImage[col, (newImage.GetLength(1) - 1) - line] = _image[line, col];
+                }
+            }
+
+            _height = _image.GetLength(1);
+            _width = _image.GetLength(0);
+            _image = newImage;
+        }
+
+        public void Rotate90L()
+        {
+            var newImage = new Pixel[_image.GetLength(1), _image.GetLength(0)];
+            for (var line = 0; line < _image.GetLength(0); line++)
+            {
+                for (var col = 0; col < _image.GetLength(1); col++)
+                {
+                    newImage[(newImage.GetLength(0) - 1) - col, line] = _image[line, col];
                 }
             }
             
+            _height = _image.GetLength(1);
+            _width = _image.GetLength(0);
             _image = newImage;
         }
 
