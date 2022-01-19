@@ -163,7 +163,6 @@ namespace Project_Info
             var enumerable = data.ToList();
             for (var i = 0; i < enumerable.Count; i++)
             {
-                Console.WriteLine(enumerable[i]);
                 result = (int) (result + enumerable[i] * Math.Pow(256, i));
             }
             return result;
