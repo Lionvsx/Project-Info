@@ -36,32 +36,42 @@ namespace Project_Info
         public static byte[] WriteImage(Image im)
         {
             List<byte> file = new List<byte>();
+            byte vide = Byte.MinValue;
+            List<byte> size2 = new List<byte>(){vide, vide};
+            List<byte> size4 = new List<byte>(){vide, vide, vide, vide};
             
-            List<byte> size2 = new List<byte>(){};
-            file.Concat()
             for (int i = 0; i < ConvertToendian(im.Size,4).Length; i++)
             {
                 file.Add(ConvertToendian(im.Size,4)[i]);
             }
-
+            
+            file.Concat(size4);
+            
             for (int i = 0; i < ConvertToendian(im.Offset, 4).Length; i++)
             {
                 file.Add(ConvertToendian(im.Offset, 4)[i]);
             }
-
-            for (int i = 0; i < ConvertToendian(im.Height,4).Length; i++)
-            {
-                file.Add(ConvertToendian(im.Height,4)[i]);
-            }
+            
+            file.Concat(size4);
             
             for (int i = 0; i < ConvertToendian(im.Width,4).Length; i++)
             {
                 file.Add(ConvertToendian(im.Width,4)[i]);
             }
-            
-            for (int i = 0; i < ConvertToendian(im.BitRgb,2).Length; i++)
+
+           
+            for (int i = 0; i < ConvertToendian(im.Height,4).Length; i++)
             {
-                file.Add(ConvertToendian(im.BitRgb,2)[i]);
+                file.Add(ConvertToendian(im.Height,4)[i]);
+            }
+            file.Concat(size2);
+            for (int i = 0; i < ConvertToendian(im.BitRgb, 2).Length; i++)
+            {
+                file.Add(ConvertToendian(im.BitRgb, 2)[i]);
+            }
+            for (int i = 0; i < 6; i++)
+            {
+                file.Concat(size4);
             }
         }
         
