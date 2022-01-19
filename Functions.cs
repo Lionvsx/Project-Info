@@ -85,8 +85,9 @@ namespace Project_Info
             const int b = 66;
             const int m = 77;
             var type = new List<byte>(){b, m};
-            var size2 = new List<byte>(){vide, vide};
-            var size4 = new List<byte>(){vide, vide, vide, vide};
+            var size1 = new List<byte>(){vide};
+            var size3 = new List<byte>(){vide, vide, vide};
+            var size4 = new List<byte>(){vide, vide, vide,vide};
 
             file.AddRange(type);
             for (var i = 0; i < ConvertToEndian(im.Size,4).Length; i++)
@@ -100,8 +101,8 @@ namespace Project_Info
             {
                 file.Add(ConvertToEndian(im.Offset, 4)[i]);
             }
-            
-            file.AddRange(size4);
+            file.Add(40);
+            file.AddRange(size3);
             
             for (var i = 0; i < ConvertToEndian(im.Width,4).Length; i++)
             {
@@ -112,16 +113,32 @@ namespace Project_Info
             {
                 file.Add(ConvertToEndian(im.Height,4)[i]);
             }
-            file.AddRange(size2);
+            file.Add(1);
+            file.AddRange(size1);
             for (var i = 0; i < ConvertToEndian(im.BitRgb, 2).Length; i++)
             {
                 file.Add(ConvertToEndian(im.BitRgb, 2)[i]);
             }
-            for (var i = 0; i < 6; i++)
+            for (var i = 0; i < 2; i++)
             {
                 file.AddRange(size4);
             }
-
+            file.Add(196);
+            file.Add(4);
+            for (var i = 0; i < 2; i++)
+            {
+                file.AddRange(size1);
+            }
+            file.Add(196);
+            file.Add(4);
+            for (var i = 0; i < 2; i++)
+            {
+                file.AddRange(size1);
+            }
+            for (var i = 0; i < 2; i++)
+            {
+                file.AddRange(size4);
+            }
             for (var i = im.ImageData.GetLength(0) - 1; i >= 0; i--)
             {
                 for (var j = 0; j < im.ImageData.GetLength(1); j++)
@@ -162,7 +179,7 @@ namespace Project_Info
             var endian = new byte[size];
             for (var i = size - 1; i >= 0; i--)
             {
-                endian[i] = (byte) (data % Math.Pow(256,i ));
+                endian[i] = (byte) (data / Math.Pow(256,i ));
                 data -= endian[i] * (int) (Math.Pow(256, i));
             }
             return endian;
