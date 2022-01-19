@@ -34,7 +34,7 @@ namespace Project_Info
             var imageData = new Pixel[image.Height,image.Width];
             
             //L'image elle-même
-            var line = 0;
+            var line = image.Height-1;
             var emptyBytes = (image.Width*3 % 4);
             for (var i = 54; i < myfile.Length; i = i + (image.Width*3 + emptyBytes))
             {
@@ -59,7 +59,7 @@ namespace Project_Info
                     ++col;
                 }
 
-                ++line;
+                --line;
             }
 
             image.ImageData = imageData;
