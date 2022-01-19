@@ -32,16 +32,17 @@ namespace Project_Info
 
             image.Height = ConvertToInt(hei);
             image.Width = ConvertToInt(wid);
-            image.Size = ConvertToInt(fsize);
             image.Offset = ConvertToInt(off);
+            image.Size = image.Height * image.Width * 3 + image.Offset;
             image.BitRgb = ConvertToInt(bpp);
+            
 
             var imageData = new Pixel[image.Height,image.Width];
             
             //L'image elle-même
             var line = image.Height-1;
-            var emptyBytes = (image.Width*3 % 4);
-            for (var i = 54; i < myfile.Length; i = i + (image.Width*3 + emptyBytes))
+            var emptyBytes = (4 - (image.Width * 3 % 4))%4;
+            for (var i = 54; i < image.Size; i = i + (image.Width*3 + emptyBytes))
             {
                 var col = 0;
                 for (var j = i; j < i + image.Width*3; j++)
