@@ -62,5 +62,7 @@ namespace Project_Info
             _bitRgb = bitRgb;
             this._image = imge;
         }
+
+        
     }
 }
