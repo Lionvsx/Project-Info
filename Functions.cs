@@ -111,6 +111,15 @@ namespace Project_Info
                 file = (List<byte>) file.Concat(size4);
             }
 
+            for (int i = im.ImageData.GetLength(0) - 1; i >= 0; i--)
+            {
+                for (int j = 0; j < im.ImageData.GetLength(1); j++)
+                {
+                    file.Add(Convert.ToByte(im.ImageData[i,j].Red));
+                    file.Add(Convert.ToByte(im.ImageData[i,j].Green));
+                    file.Add(Convert.ToByte(im.ImageData[i,j].Blue));
+                }
+            }
             return file.ToArray();
         }
         
