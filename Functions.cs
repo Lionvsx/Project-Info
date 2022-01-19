@@ -35,23 +35,25 @@ namespace Project_Info
             
             //L'image elle-même
             var line = 0;
-            var emptyBytes = 4 - image.Width % 4;
-            for (var i = 54; i < myfile.Length; i = i + (image.Width + emptyBytes))
+            var emptyBytes = (image.Width*3 % 4);
+            for (var i = 54; i < myfile.Length; i = i + (image.Width*3 + emptyBytes))
             {
                 var col = 0;
-                for (var j = i; j < i + image.Width; j++)
+                for (var j = i; j < i + image.Width*3; j++)
                 {
                     switch (col % 3)
                     {
                         case 0:
-                            //imageData[line, col / 3] = new Pixel();
-                            imageData[line, col / 3].Red = myfile[i + j];
+                            imageData[line, col / 3] = new Pixel
+                            {
+                                Red = myfile[j]
+                            };
                             break;
                         case 1:
-                            imageData[line, col / 3].Green = myfile[i + j];
+                            imageData[line, col / 3].Green = myfile[j];
                             break;
                         case 2:
-                            imageData[line, col / 3].Blue = myfile[i + j];
+                            imageData[line, col / 3].Blue = myfile[j];
                             break;
                     }
                     ++col;
@@ -60,6 +62,7 @@ namespace Project_Info
                 ++line;
             }
 
+            image.ImageData = imageData;
             return image;
 
         }
@@ -107,6 +110,8 @@ namespace Project_Info
             {
                 file = (List<byte>) file.Concat(size4);
             }
+
+            return file.ToArray();
         }
         
         public static int ConvertToInt(IEnumerable<byte> data)
