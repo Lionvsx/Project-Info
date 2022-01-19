@@ -15,6 +15,11 @@ namespace Project_Info
             this._green = green;
         }
 
+        public Pixel()
+        {
+            
+        }
+
         public int Red
         {
             get => _red;
