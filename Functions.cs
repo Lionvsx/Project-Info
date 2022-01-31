@@ -214,7 +214,7 @@ namespace Project_Info
             Image imgrey = new Image(im);
             for (int i = 0; i < im.Height; i++)
             {
-                for (int j = 0; j < im.Width; j++)
+                for (int j = 0; j < im.Width ; j++)
                 {
                     //Apply conversion equation
                     byte gray = (byte)(.21 * im.ImageData[i,j].Red + .71 * im.ImageData[i,j].Green + .071 * im.ImageData[i,j].Blue);
