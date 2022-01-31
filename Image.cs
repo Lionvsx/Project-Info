@@ -90,7 +90,7 @@ namespace Project_Info
                 Console.WriteLine();
             }
         }
-
+    
         public void Rotate90R()
         {
             var newImage = new Pixel[_image.GetLength(1), _image.GetLength(0)];
@@ -106,7 +106,7 @@ namespace Project_Info
             _width = _image.GetLength(0);
             _image = newImage;
         }
-
+        
         public void Rotate90L()
         {
             var newImage = new Pixel[_image.GetLength(1), _image.GetLength(0)];
@@ -122,7 +122,7 @@ namespace Project_Info
             _width = _image.GetLength(0);
             _image = newImage;
         }
-
+//add check if possible
         public void Maximize(int factor)
         {
             var newImage = new Pixel[_image.GetLength(0) * factor, _image.GetLength(1) * factor];
@@ -135,6 +135,33 @@ namespace Project_Info
             }
             _height *= factor;
             _width *= factor;
+            _image = newImage;
+        }
+        //add check if possible
+        public void Minimize(int factor)
+        {
+            var newImage = new Pixel[_image.GetLength(0) / factor, _image.GetLength(1) / factor];
+            for (var line = 0; line < newImage.GetLength(0); line++)
+            {
+                for (var col = 0; col < newImage.GetLength(1); col++)
+                {
+                    newImage[line, col] = new Pixel(_image[line * factor, col * factor]);
+                }
+            }
+            _height /= factor;
+            _width /= factor;
+            _image = newImage;
+        }
+        public void Mirror()
+        {
+            var newImage = new Pixel[_image.GetLength(0), _image.GetLength(1)];
+            for (var line = 0; line < _image.GetLength(0); line++)
+            {
+                for (var col = 0; col < _image.GetLength(1); col++)
+                {
+                    newImage[line, newImage.GetLength(1) - 1 - col] = _image[line, col];
+                }
+            }
             _image = newImage;
         }
     }

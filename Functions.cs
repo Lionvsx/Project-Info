@@ -209,7 +209,7 @@ namespace Project_Info
             File.WriteAllBytes("./Images/Sortie.bmp", myfile);
         }
 
-        public static Image rgbtogrey(Image im)
+        public static Image Rgbtogrey(Image im)
         {
             Image imgrey = new Image(im);
             for (int i = 0; i < im.Height; i++)
@@ -228,5 +228,7 @@ namespace Project_Info
             }
             return imgrey;
         }
+
+        
     }
 }
