@@ -143,9 +143,9 @@ namespace Project_Info
             {
                 for (var j = 0; j < im.ImageData.GetLength(1); j++)
                 {
-                    file.Add(Convert.ToByte(im.ImageData[i,j].Red));
-                    file.Add(Convert.ToByte(im.ImageData[i,j].Green));
-                    file.Add(Convert.ToByte(im.ImageData[i,j].Blue));
+                    file.Add(Convert.ToByte(Math.Abs(im.ImageData[i,j].Red)));
+                    file.Add(Convert.ToByte(Math.Abs(im.ImageData[i,j].Green)));
+                    file.Add(Convert.ToByte(Math.Abs(im.ImageData[i,j].Blue)));
                 }
             }
             
@@ -209,7 +209,7 @@ namespace Project_Info
             File.WriteAllBytes("./Images/Sortie.bmp", myfile);
         }
 
-        public static Image Rgbtogrey(Image im)
+        public static Image ConvertToGrey(Image im)
         {
             Image imgrey = new Image(im);
             for (int i = 0; i < im.Height; i++)
@@ -228,7 +228,5 @@ namespace Project_Info
             }
             return imgrey;
         }
-
-        
     }
 }
