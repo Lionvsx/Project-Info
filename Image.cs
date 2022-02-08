@@ -4,7 +4,6 @@ namespace Project_Info
 {
     public class Image
     {
-        private string _type;
         private int _size;
         private int _offset;
         private int _height;
@@ -15,11 +14,7 @@ namespace Project_Info
         public Image()
         {
         }
-        public string Type
-        {
-            get => _type;
-            set => _type = value;
-        }
+        public string Type { get; set; }
 
         public int Size
         {
@@ -58,7 +53,7 @@ namespace Project_Info
 
         public Image(Image image)
         {
-            _type = image.Type;
+            Type = image.Type;
             _size = image.Size;
             _offset = image.Offset;
             _height = image.Height;
@@ -69,7 +64,7 @@ namespace Project_Info
 
         public Image(string type, int size, int offset, int height, int width, int bitRgb, Pixel[,] image)
         {
-            _type = type;
+            Type = type;
             _size = size;
             _offset = offset;
             _height = height;
