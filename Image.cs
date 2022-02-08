@@ -124,34 +124,40 @@ namespace Project_Info
             _imageData = newImage;
         }
 //add check if possible
-        public void Maximize(int factor)
+        public void Maximize(double factor)
         {
-            var newImage = new Pixel[_imageData.GetLength(0) * factor, _imageData.GetLength(1) * factor];
-            for (var line = 0; line < newImage.GetLength(0); line++)
-            {
-                for (var col = 0; col < newImage.GetLength(1); col++)
+            
+                var newImage = new Pixel[(int) (_imageData.GetLength(0) * factor), (int) (_imageData.GetLength(1) * factor)];
+                for (var line = 0; line < newImage.GetLength(0); line++)
                 {
-                    newImage[line, col] = new Pixel(_imageData[line / factor, col / factor]);
+                    for (var col = 0; col < newImage.GetLength(1); col++)
+                    {
+                        newImage[line, col] = new Pixel(_imageData[(int) (line / factor), (int) (col / factor)]);
+                    }
                 }
-            }
-            _height *= factor;
-            _width *= factor;
-            _imageData = newImage;
+
+                _height = (int) (_imageData.GetLength(0) * factor);
+                _width = (int) (_imageData.GetLength(1) * factor);
+                _imageData = newImage;
+            
         }
         //add check if possible
-        public void Minimize(int factor)
+        public void Minimize(double factor)
         {
-            var newImage = new Pixel[_imageData.GetLength(0) / factor, _imageData.GetLength(1) / factor];
-            for (var line = 0; line < newImage.GetLength(0); line++)
-            {
-                for (var col = 0; col < newImage.GetLength(1); col++)
+            
+                var newImage = new Pixel[(int) (_imageData.GetLength(0) / factor), (int) (_imageData.GetLength(1) / factor)];
+                for (var line = 0; line < newImage.GetLength(0); line++)
                 {
-                    newImage[line, col] = new Pixel(_imageData[line * factor, col * factor]);
+                    for (var col = 0; col < newImage.GetLength(1); col++)
+                    {
+                        newImage[line, col] = new Pixel(_imageData[(int) (line * factor), (int) (col * factor)]);
+                    }
                 }
-            }
-            _height /= factor;
-            _width /= factor;
-            _imageData = newImage;
+
+                _height =  (int) (_imageData.GetLength(0)/factor);
+                _width = (int) (_imageData.GetLength(1)/factor);
+                _imageData = newImage;
+
         }
         public void Mirror()
         {

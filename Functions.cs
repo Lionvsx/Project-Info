@@ -139,6 +139,7 @@ namespace Project_Info
             {
                 file.AddRange(size4);
             }
+            
             for (var i = im.ImageData.GetLength(0) - 1; i >= 0; i--)
             {
                 for (var j = 0; j < im.ImageData.GetLength(1); j++)
@@ -147,6 +148,12 @@ namespace Project_Info
                     file.Add(Convert.ToByte(Math.Abs(im.ImageData[i,j].Green)));
                     file.Add(Convert.ToByte(Math.Abs(im.ImageData[i,j].Blue)));
                 }
+
+                for (var k = 0; k < im.ImageData.GetLength(1)%4; k++)
+                {
+                    file.Add(vide);
+                }
+                
             }
             
             File.WriteAllBytes(path, file.ToArray());
@@ -209,24 +216,6 @@ namespace Project_Info
             File.WriteAllBytes("./Images/Sortie.bmp", myfile);
         }
 
-        public static Image ConvertToGrey(Image im)
-        {
-            Image imgrey = new Image(im);
-            for (int i = 0; i < im.Height; i++)
-            {
-                for (int j = 0; j < im.Width ; j++)
-                {
-                    //Apply conversion equation
-                    byte gray = (byte)(.21 * im.ImageData[i,j].Red + .71 * im.ImageData[i,j].Green + .071 * im.ImageData[i,j].Blue);
-
-                    //Set the color of this pixel
-                    imgrey.ImageData[i, j].Red = gray;
-                    imgrey.ImageData[i, j].Green = gray;
-                    imgrey.ImageData[i, j].Blue = gray;
-                    
-                }
-            }
-            return imgrey;
-        }
+        
     }
 }
