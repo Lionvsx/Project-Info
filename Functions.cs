@@ -216,6 +216,28 @@ namespace Project_Info
             File.WriteAllBytes("./Images/Sortie.bmp", myfile);
         }
 
+        public static Pixel[,] CreateWhiteImage(int height, int width)
+        {
+            var imageData = new Pixel[height, width];
+            for (int i = 0; i < imageData.GetLength(0); i++)
+            {
+                for (int j = 0; j < imageData.GetLength(1); j++)
+                {
+                    imageData[i, j] = new Pixel(255, 255, 255);
+                }
+            }
+            return imageData;
+        }
         
+        public static void FillImageWhite(Pixel[,] imageData)
+        {
+            for (int i = 0; i < imageData.GetLength(0); i++)
+            {
+                for (int j = 0; j < imageData.GetLength(1); j++)
+                {
+                    imageData[i, j] ??= new Pixel(255, 255, 255);
+                }
+            }
+        }
     }
 }
