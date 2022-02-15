@@ -1,4 +1,5 @@
 using System;
+using System.Drawing.Drawing2D;
 
 namespace Project_Info
 {
@@ -261,9 +262,9 @@ namespace Project_Info
                     filteredPixelX.Blue = (int) (filteredPixelX.Blue * factor);
                     filteredPixelX.Green = (int) (filteredPixelX.Green * factor);
                     
-                    filteredPixelY.Red = (int) (filteredPixelX.Red * factor);
-                    filteredPixelY.Blue = (int) (filteredPixelX.Blue * factor);
-                    filteredPixelY.Green = (int) (filteredPixelX.Green * factor);
+                    filteredPixelY.Red = (int) (filteredPixelY.Red * factor);
+                    filteredPixelY.Blue = (int) (filteredPixelY.Blue * factor);
+                    filteredPixelY.Green = (int) (filteredPixelY.Green * factor);
 
                     var redValue = (int) Math.Sqrt(filteredPixelX.Red * filteredPixelX.Red +
                                                    filteredPixelY.Red * filteredPixelY.Red);
@@ -296,9 +297,61 @@ namespace Project_Info
                     _imageData[i, j].Red = gray;
                     _imageData[i, j].Green = gray;
                     _imageData[i, j].Blue = gray;
+                }
+            }
+        }
+
+        public void RotateAngle(double radians)
+        {
+            int newWidth = (int) Math.Abs(Math.Round(Math.Cos(radians) * _width + Math.Sin(radians) * _height));
+            int newHeight = (int) Math.Abs(Math.Round(Math.Sin(radians) * _width + Math.Cos(radians) * _height));
+            var newImageData = new Pixel[newHeight, newWidth];
+
+            var offset = (int) Math.Abs(Math.Cos(radians) * _height);
+
+            
+            for (var line = 0; line < _imageData.GetLength(0); line++)
+            {
+                var ghostLine = - line;
+                for (var col = 0; col < _imageData.GetLength(1); col++)
+                {
+                    var newLineDouble = (col * Math.Sin(radians) + ghostLine * Math.Cos(radians) + offset);
+                    var newColDouble = (col * Math.Cos(radians) - ghostLine * Math.Sin(radians));
+                    var newLine = Math.Round(newLineDouble);
+                    var newCol = Math.Round(newColDouble);
+                    if (newLineDouble - newLine < Math.Pow(10, -5) && newColDouble - newCol < Math.Pow(10, -5))
+                    {
+                        newImageData[(int) newLine, (int) newCol] = _imageData[line, col];
+                    }
+                    else
+                    {
+                        var newLineMax = (int) Math.Ceiling(newLineDouble);
+                        var newLineMin = (int) Math.Floor(newLineDouble);
+                        var newColMax = (int) Math.Ceiling(newColDouble);
+                        var newColMin = (int) Math.Floor(newColDouble);
+
+                        if (newLineMax < newHeight && newColMax < newWidth)
+                        {
+                            newImageData[newLineMax, newColMax] ??= _imageData[line, col];
+                            newImageData[newLineMin, newColMax] ??= _imageData[line, col];
+                            newImageData[newLineMax, newColMin] ??= _imageData[line, col];
+                            newImageData[newLineMin, newColMin] ??= _imageData[line, col];
+                        }
+                        
+                        
+                        
+                    }
+                    
+                    
+                    Console.WriteLine($"({ghostLine},{col}) ==> ({newLine},{newCol})");
                     
                 }
             }
+
+            Functions.FillImageWhite(newImageData);
+            _height = newHeight;
+            _width = newWidth;
+            _imageData = newImageData;
         }
     }
 }
