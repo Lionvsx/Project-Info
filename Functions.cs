@@ -216,6 +216,47 @@ namespace Project_Info
             File.WriteAllBytes("./Images/Sortie.bmp", myfile);
         }
 
-        
+        public static Image Fractal(Image im)
+        {
+            
+            var nbIteration =1000;
+            var xmin = -2.1;
+            var xmax = 0.6;
+            var ymin = -1.2;
+            var ymax = 1.2;
+            
+            for (var y = 0; y < im.ImageData.GetLength(0); y++)
+            {
+                for (var x = 0; x < im.ImageData.GetLength(1); x++)
+                {
+                    var cx = (x * (xmax - xmin) / im.ImageData.GetLength(1) + xmin);
+                    var cy = (y * (ymax - ymin) / im.ImageData.GetLength(0) + ymin);
+                    var xn = 0.0;
+                    var yn = 0.0;
+                    var n = 0;
+                    while ((xn * xn + yn * yn) < 4 && n < nbIteration)
+                    {
+                        var tempx = xn;
+                        var tempy = yn;
+                        xn = tempx * tempx - tempy * tempy + cx;
+                        yn = 2 * tempx * tempy + cy;
+                        n++;
+                    }
+
+                    if (n == nbIteration)
+                    {
+                        im.ImageData[y, x] = new Pixel(0, 0, 0);
+                    }
+                    else
+                    {
+                        im.ImageData[y, x] = new Pixel(255, 255, 255);
+                    }
+                } 
+            }
+
+            return im;
+        }
+
+
     }
 }
