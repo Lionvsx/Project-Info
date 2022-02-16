@@ -219,7 +219,7 @@ namespace Project_Info
         public static Image Fractal(Image im)
         {
             
-            var nbIteration =1000;
+            var nbIteration =2000;
             var xmin = -2.1;
             var xmax = 0.6;
             var ymin = -1.2;
@@ -245,11 +245,12 @@ namespace Project_Info
 
                     if (n == nbIteration)
                     {
-                        im.ImageData[y, x] = new Pixel(0, 0, 0);
+                        im.ImageData[y, x] = new Pixel(255, 184, 53);
+                        
                     }
                     else
                     {
-                        im.ImageData[y, x] = new Pixel(255, 255, 255);
+                        im.ImageData[y, x] = new Pixel(0, 0, 0);
                     }
                 } 
             }
@@ -257,6 +258,71 @@ namespace Project_Info
             return im;
         }
 
+        public static Image Histograme(Image im)
+        {
+            var histo = new Image(im);
+            histo.Height = im.Height*10;
+            histo.Width = 2560;
+            histo.ImageData = CreateBlackImage(im.Height*10, 2560);
+            
+            var rgbColor = new [] {new int[256], new int[256], new int[256]};
+            for (var i = 0; i < im.ImageData.GetLength(0); i++)
+            {
+                for (var j = 0; j < im.ImageData.GetLength(1); j++)
+                {
+                    rgbColor[0][ im.ImageData[i, j].Red]++;                            // Red
+                    rgbColor[1][ im.ImageData[i, j].Green]++;
+                    rgbColor[2][ im.ImageData[i, j].Blue]++;
+                }
+            }
+            
+            
+            for (var k = 0; k < histo.ImageData.GetLength(1); k+=10)
+            {
+                /*
+                 var l = histo.ImageData.GetLength(0) - 1;
+                while (rgbColor[0][histo.ImageData.GetLength(0)-l] > 0)
+                {
+                    histo.ImageData[l, k].Red = 255;
+                    rgbColor[0][k]--;
+                    l--;
+                }
+                var m = histo.ImageData.GetLength(0) - 1;
+                while (rgbColor[1][histo.ImageData.GetLength(0)-m] > 0)
+                {
+                    histo.ImageData[m, k].Green = 255;
+                    rgbColor[1][k]--;
+                    m--;
+                }
+                var n = histo.ImageData.GetLength(0) - 1;
+                while (rgbColor[2][histo.ImageData.GetLength(0)-n] > 0)
+                {
+                    histo.ImageData[n, k].Blue = 255;
+                    rgbColor[2][k]--;
+                    n--;
+                }
+                */
+                for (var rep = 0; rep < 10; rep++)
+                {
+                    for (var l = 0; l < rgbColor[0][k / 10]; l++)
+                    {
+                        histo.ImageData[histo.ImageData.GetLength(0)-1-l, k+rep].Red = 255;
+                    }
+
+                    for (var m = 0; m < rgbColor[1][k / 10]; m++)
+                    {
+                        histo.ImageData[histo.ImageData.GetLength(0)-1-m, k+rep].Blue = 255;
+                    }
+
+                    for (var n = 0; n < rgbColor[2][k / 10]; n++)
+                    {
+                        histo.ImageData[histo.ImageData.GetLength(0)-1-n, k+rep].Green = 255;
+                    }
+                }
+            }
+            
+            return histo;
+        }
 
         public static Pixel[,] CreateWhiteImage(int height, int width)
         {
@@ -266,6 +332,18 @@ namespace Project_Info
                 for (int j = 0; j < imageData.GetLength(1); j++)
                 {
                     imageData[i, j] = new Pixel(255, 255, 255);
+                }
+            }
+            return imageData;
+        }
+        public static Pixel[,] CreateBlackImage(int height, int width)
+        {
+            var imageData = new Pixel[height, width];
+            for (int i = 0; i < imageData.GetLength(0); i++)
+            {
+                for (int j = 0; j < imageData.GetLength(1); j++)
+                {
+                    imageData[i, j] = new Pixel(0, 0, 0);
                 }
             }
             return imageData;
