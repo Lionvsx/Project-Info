@@ -260,10 +260,11 @@ namespace Project_Info
 
         public static Image Histograme(Image im)
         {
+            var coefwidth = (int)(Math.Ceiling(im.Height/256.0))*10;
             var histo = new Image(im);
             histo.Height = im.Height*10;
-            histo.Width = 2560;
-            histo.ImageData = CreateBlackImage(im.Height*10, 2560);
+            histo.Width = 256*coefwidth;
+            histo.ImageData = CreateBlackImage(im.Height*10, 256*coefwidth);
             
             var rgbColor = new [] {new int[256], new int[256], new int[256]};
             for (var i = 0; i < im.ImageData.GetLength(0); i++)
@@ -277,7 +278,7 @@ namespace Project_Info
             }
             
             
-            for (var k = 0; k < histo.ImageData.GetLength(1); k+=10)
+            for (var k = 0; k < histo.ImageData.GetLength(1); k+=coefwidth)
             {
                 /*
                  var l = histo.ImageData.GetLength(0) - 1;
@@ -302,19 +303,19 @@ namespace Project_Info
                     n--;
                 }
                 */
-                for (var rep = 0; rep < 10; rep++)
+                for (var rep = 0; rep < coefwidth; rep++)
                 {
-                    for (var l = 0; l < rgbColor[0][k / 10]; l++)
+                    for (var l = 0; l < rgbColor[0][k / coefwidth]; l++)
                     {
                         histo.ImageData[histo.ImageData.GetLength(0)-1-l, k+rep].Red = 255;
                     }
 
-                    for (var m = 0; m < rgbColor[1][k / 10]; m++)
+                    for (var m = 0; m < rgbColor[1][k / coefwidth]; m++)
                     {
                         histo.ImageData[histo.ImageData.GetLength(0)-1-m, k+rep].Blue = 255;
                     }
 
-                    for (var n = 0; n < rgbColor[2][k / 10]; n++)
+                    for (var n = 0; n < rgbColor[2][k / coefwidth]; n++)
                     {
                         histo.ImageData[histo.ImageData.GetLength(0)-1-n, k+rep].Green = 255;
                     }

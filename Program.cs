@@ -10,7 +10,7 @@ namespace Project_Info
 
         static void Main(string[] args)
         {
-            var test = Functions.ReadImage(@"../../../images/coco.bmp");
+            var test = Functions.ReadImage(@"../../../images/lac.bmp");
 
             //test.ConvertToGrey();
             //test.DoubleConvolutionFilter(Kernel.SobelX, Kernel.SobelY);
@@ -20,7 +20,11 @@ namespace Project_Info
             //test.Rotate90L();
            
            var testb = Functions.Histograme(test);
-           testb.Minimize(10);
+           if (test.Height > 300)
+           {
+               testb.Minimize(5);
+           }
+           
             Functions.WriteImage(testb, @"../../../images/Test6.bmp");
             
            
