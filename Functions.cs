@@ -261,10 +261,11 @@ namespace Project_Info
         public static Image Histograme(Image im)
         {
             var coefwidth = (int)(Math.Ceiling(im.Height/256.0))*10;
-            var histo = new Image(im);
-            histo.Height = im.Height*10;
-            histo.Width = 256*coefwidth;
-            histo.ImageData = CreateBlackImage(im.Height*10, 256*coefwidth);
+            var newHeight = im.Height*10;
+            var newWidth = 256*coefwidth;
+            var histo = new Image(im.Type, newHeight * newWidth, im.Offset, newHeight, newWidth, im.BitRgb,
+                CreateBlackImage(im.Height * 10, 256 * coefwidth));
+           
             
             var rgbColor = new [] {new int[256], new int[256], new int[256]};
             for (var i = 0; i < im.ImageData.GetLength(0); i++)
@@ -280,29 +281,7 @@ namespace Project_Info
             
             for (var k = 0; k < histo.ImageData.GetLength(1); k+=coefwidth)
             {
-                /*
-                 var l = histo.ImageData.GetLength(0) - 1;
-                while (rgbColor[0][histo.ImageData.GetLength(0)-l] > 0)
-                {
-                    histo.ImageData[l, k].Red = 255;
-                    rgbColor[0][k]--;
-                    l--;
-                }
-                var m = histo.ImageData.GetLength(0) - 1;
-                while (rgbColor[1][histo.ImageData.GetLength(0)-m] > 0)
-                {
-                    histo.ImageData[m, k].Green = 255;
-                    rgbColor[1][k]--;
-                    m--;
-                }
-                var n = histo.ImageData.GetLength(0) - 1;
-                while (rgbColor[2][histo.ImageData.GetLength(0)-n] > 0)
-                {
-                    histo.ImageData[n, k].Blue = 255;
-                    rgbColor[2][k]--;
-                    n--;
-                }
-                */
+                
                 for (var rep = 0; rep < coefwidth; rep++)
                 {
                     for (var l = 0; l < rgbColor[0][k / coefwidth]; l++)
@@ -340,11 +319,12 @@ namespace Project_Info
         public static Pixel[,] CreateBlackImage(int height, int width)
         {
             var imageData = new Pixel[height, width];
+            var pix = new Pixel(0, 0, 0);
             for (int i = 0; i < imageData.GetLength(0); i++)
             {
                 for (int j = 0; j < imageData.GetLength(1); j++)
                 {
-                    imageData[i, j] = new Pixel(0, 0, 0);
+                    imageData[i, j] = pix;
                 }
             }
             return imageData;
