@@ -5,7 +5,6 @@ namespace Project_Info
 {
     public class Image
     {
-        private int _size;
         private int _offset;
         private int _height;
         private int _width;
@@ -57,7 +56,6 @@ namespace Project_Info
         public Image(Image image)
         {
             Type = image.Type;
-            _size = image.Size;
             _offset = image.Offset;
             _height = image.Height;
             _width = image.Width;
@@ -65,10 +63,9 @@ namespace Project_Info
             _imageData = image.ImageData;
         }
 
-        public Image(string type, int size, int offset, int height, int width, int bitRgb, Pixel[,] image)
+        public Image(string type, int offset, int height, int width, int bitRgb, Pixel[,] image)
         {
             Type = type;
-            _size = size;
             _offset = offset;
             _height = height;
             _width = width;

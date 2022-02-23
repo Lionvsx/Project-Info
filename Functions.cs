@@ -263,7 +263,7 @@ namespace Project_Info
             var coefwidth = (int)(Math.Ceiling(im.Height/256.0))*10;
             var newHeight = im.Height*10;
             var newWidth = 256*coefwidth;
-            var histo = new Image(im.Type, newHeight * newWidth, im.Offset, newHeight, newWidth, im.BitRgb,
+            var histo = new Image(im.Type, im.Offset, newHeight, newWidth, im.BitRgb,
                 CreateBlackImage(im.Height * 10, 256 * coefwidth));
            
             
