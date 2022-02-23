@@ -15,6 +15,8 @@ namespace Project_Info
         public Image()
         {
         }
+        
+        
         public string Type { get; set; }
 
         public int Size
@@ -153,7 +155,6 @@ namespace Project_Info
                 _height =  (int) (_imageData.GetLength(0)/factor);
                 _width = (int) (_imageData.GetLength(1)/factor);
                 _imageData = newImage;
-
         }
         public void Mirror()
         {
@@ -307,19 +308,21 @@ namespace Project_Info
             int newHeight = (int) Math.Abs(Math.Round(Math.Sin(radians) * _width + Math.Cos(radians) * _height));
             var newImageData = new Pixel[newHeight, newWidth];
 
-            var offset = (int) Math.Abs(Math.Cos(radians) * _height);
+            var offsets = Functions.GetImageRotationOffset(_imageData, radians);
 
-            
+            var offsetY = offsets[0];
+            var offsetX = offsets[1];
+
             for (var line = 0; line < _imageData.GetLength(0); line++)
             {
                 var ghostLine = - line;
                 for (var col = 0; col < _imageData.GetLength(1); col++)
                 {
-                    var newLineDouble = (col * Math.Sin(radians) + ghostLine * Math.Cos(radians) + offset);
-                    var newColDouble = (col * Math.Cos(radians) - ghostLine * Math.Sin(radians));
+                    var newLineDouble = Math.Abs(col * Math.Sin(radians) + ghostLine * Math.Cos(radians) + offsetY - newHeight + 1);
+                    var newColDouble = Math.Abs(col * Math.Cos(radians) - ghostLine * Math.Sin(radians) + offsetX);
                     var newLine = Math.Round(newLineDouble);
                     var newCol = Math.Round(newColDouble);
-                    if (newLineDouble - newLine < Math.Pow(10, -5) && newColDouble - newCol < Math.Pow(10, -5))
+                    if (Math.Abs(newLineDouble - newLine) < Math.Pow(10, -5) && Math.Abs(newColDouble - newCol) < Math.Pow(10, -5))
                     {
                         newImageData[(int) newLine, (int) newCol] = _imageData[line, col];
                     }
@@ -330,24 +333,16 @@ namespace Project_Info
                         var newColMax = (int) Math.Ceiling(newColDouble);
                         var newColMin = (int) Math.Floor(newColDouble);
 
-                        if (newLineMax < newHeight && newColMax < newWidth)
-                        {
-                            newImageData[newLineMax, newColMax] ??= _imageData[line, col];
-                            newImageData[newLineMin, newColMax] ??= _imageData[line, col];
-                            newImageData[newLineMax, newColMin] ??= _imageData[line, col];
-                            newImageData[newLineMin, newColMin] ??= _imageData[line, col];
-                        }
                         
-                        
+                            if (newLineMax < newHeight && newColMax < newWidth) newImageData[newLineMax, newColMax] ??= _imageData[line, col];
+                            if (newLineMin >= 0 && newColMax < newWidth) newImageData[newLineMin, newColMax] ??= _imageData[line, col];
+                            if (newLineMax < newHeight && newColMin >= 0) newImageData[newLineMax, newColMin] ??= _imageData[line, col];
+                            if (newLineMin >= 0 && newColMin >= 0) newImageData[newLineMin, newColMin] ??= _imageData[line, col];
                         
                     }
-                    
-                    
-                    Console.WriteLine($"({ghostLine},{col}) ==> ({newLine},{newCol})");
-                    
+                    //Console.WriteLine($"({ghostLine},{col}) ==> ({newLine},{newCol})");
                 }
             }
-
             Functions.FillImageWhite(newImageData);
             _height = newHeight;
             _width = newWidth;

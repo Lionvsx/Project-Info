@@ -10,7 +10,7 @@ namespace Project_Info
 
         static void Main(string[] args)
         {
-            var test = Functions.ReadImage(@"../../../images/lac.bmp");
+            var test = Functions.ReadImage(@"../../../images/Test.bmp");
 
             //test.ConvertToGrey();
             //test.DoubleConvolutionFilter(Kernel.SobelX, Kernel.SobelY);
@@ -19,15 +19,15 @@ namespace Project_Info
             //test.DisplayImage();
             //test.Rotate90L();
            
-           var testb = Functions.Histograme(test);
-           if (test.Height > 300)
-           {
-               testb.Minimize(5);
-           }
-           
-            Functions.WriteImage(testb, @"../../../images/Test6.bmp");
+           //test.RotateAngle(3*Math.PI/2);
+           test.Maximize(25);
+           test.RotateAngle(Math.PI);
+
+           Functions.WriteImage(test, @"../../../images/Test6.bmp");
+
             
-           
+
+
         }
     }
 }

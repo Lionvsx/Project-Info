@@ -340,5 +340,25 @@ namespace Project_Info
                 }
             }
         }
+
+        public static int[] GetImageRotationOffset(Pixel[,] imageData, double radians)
+        {
+            var xOffsets = new List<int>() {0};
+            var yOffsets = new List<int>() {0};
+
+            var lines = new int[] {0, -imageData.GetLength(0), -imageData.GetLength(0)};
+            var columns = new int[] { imageData.GetLength(1), imageData.GetLength(1), 0 };
+
+            for (int i = 0; i < 3; i++)
+            {
+                var newLineDouble = Math.Round(columns[i] * Math.Sin(radians) + lines[i] * Math.Cos(radians));
+                var newColDouble = Math.Round(columns[i] * Math.Cos(radians) - lines[i] * Math.Sin(radians));
+                
+                if (newLineDouble < 0) yOffsets.Add((int) Math.Abs(newLineDouble + 1));
+                if (newColDouble < 0) xOffsets.Add((int) Math.Abs(newColDouble + 1));
+            }
+
+            return new int[] {yOffsets.Max(), xOffsets.Max()};
+        }
     }
 }
