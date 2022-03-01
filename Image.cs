@@ -5,12 +5,6 @@ namespace Project_Info
 {
     public class Image
     {
-        private int _offset;
-        private int _height;
-        private int _width;
-        private int _bitRgb;
-        private Pixel[,] _imageData;
-
         public Image()
         {
         }
@@ -18,69 +12,46 @@ namespace Project_Info
         
         public string Type { get; set; }
 
-        public int Size
-        {
-            get => _height * _width * 3 + _offset;
-        }
+        public int Size => Height * Width * 3 + Offset;
 
-        public int Offset
-        {
-            get => _offset;
-            set => _offset = value;
-        }
+        public int Offset { get; set; }
 
-        public int Height
-        {
-            get => _height;
-            set => _height = value;
-        }
+        public int Height { get; set; }
 
-        public int Width
-        {
-            get => _width;
-            set => _width = value;
-        }
+        public int Width { get; set; }
 
-        public int BitRgb
-        {
-            get => _bitRgb;
-            set => _bitRgb = value;
-        }
+        public int BitRgb { get; set; }
 
-        public Pixel[,] ImageData
-        {
-            get => _imageData;
-            set => _imageData = value;
-        }
+        public Pixel[,] ImageData { get; set; }
 
         public Image(Image image)
         {
             Type = image.Type;
-            _offset = image.Offset;
-            _height = image.Height;
-            _width = image.Width;
-            _bitRgb = image.BitRgb;
-            _imageData = image.ImageData;
+            Offset = image.Offset;
+            Height = image.Height;
+            Width = image.Width;
+            BitRgb = image.BitRgb;
+            ImageData = image.ImageData;
         }
 
         public Image(string type, int offset, int height, int width, int bitRgb, Pixel[,] image)
         {
             Type = type;
-            _offset = offset;
-            _height = height;
-            _width = width;
-            _bitRgb = bitRgb;
-            _imageData = image;
+            Offset = offset;
+            Height = height;
+            Width = width;
+            BitRgb = bitRgb;
+            ImageData = image;
         }
         
 
         public void DisplayImage()
         {
-            for (var i = 0; i < _height; i++)
+            for (var i = 0; i < Height; i++)
             {
-                for (var j = 0; j < _width; j++)
+                for (var j = 0; j < Width; j++)
                 {
-                    Console.BackgroundColor = _imageData[i, j].HexString == "000000" ? ConsoleColor.Black : ConsoleColor.White;
+                    Console.BackgroundColor = ImageData[i, j].HexString == "000000" ? ConsoleColor.Black : ConsoleColor.White;
                     Console.Write(" ");
                 }
                 Console.WriteLine();
@@ -89,89 +60,89 @@ namespace Project_Info
     
         public void Rotate90R()
         {
-            var newImage = new Pixel[_imageData.GetLength(1), _imageData.GetLength(0)];
-            for (var line = 0; line < _imageData.GetLength(0); line++)
+            var newImage = new Pixel[ImageData.GetLength(1), ImageData.GetLength(0)];
+            for (var line = 0; line < ImageData.GetLength(0); line++)
             {
-                for (var col = 0; col < _imageData.GetLength(1); col++)
+                for (var col = 0; col < ImageData.GetLength(1); col++)
                 {
-                    newImage[col, (newImage.GetLength(1) - 1) - line] = _imageData[line, col];
+                    newImage[col, (newImage.GetLength(1) - 1) - line] = ImageData[line, col];
                 }
             }
 
-            _height = _imageData.GetLength(1);
-            _width = _imageData.GetLength(0);
-            _imageData = newImage;
+            Height = ImageData.GetLength(1);
+            Width = ImageData.GetLength(0);
+            ImageData = newImage;
         }
         
         public void Rotate90L()
         {
-            var newImage = new Pixel[_imageData.GetLength(1), _imageData.GetLength(0)];
-            for (var line = 0; line < _imageData.GetLength(0); line++)
+            var newImage = new Pixel[ImageData.GetLength(1), ImageData.GetLength(0)];
+            for (var line = 0; line < ImageData.GetLength(0); line++)
             {
-                for (var col = 0; col < _imageData.GetLength(1); col++)
+                for (var col = 0; col < ImageData.GetLength(1); col++)
                 {
-                    newImage[(newImage.GetLength(0) - 1) - col, line] = _imageData[line, col];
+                    newImage[(newImage.GetLength(0) - 1) - col, line] = ImageData[line, col];
                 }
             }
             
-            _height = _imageData.GetLength(1);
-            _width = _imageData.GetLength(0);
-            _imageData = newImage;
+            Height = ImageData.GetLength(1);
+            Width = ImageData.GetLength(0);
+            ImageData = newImage;
         }
 //add check if possible
         public void Maximize(double factor)
         {
             
-                var newImage = new Pixel[(int) (_imageData.GetLength(0) * factor), (int) (_imageData.GetLength(1) * factor)];
+                var newImage = new Pixel[(int) (ImageData.GetLength(0) * factor), (int) (ImageData.GetLength(1) * factor)];
                 for (var line = 0; line < newImage.GetLength(0); line++)
                 {
                     for (var col = 0; col < newImage.GetLength(1); col++)
                     {
-                        newImage[line, col] = new Pixel(_imageData[(int) (line / factor), (int) (col / factor)]);
+                        newImage[line, col] = new Pixel(ImageData[(int) (line / factor), (int) (col / factor)]);
                     }
                 }
 
-                _height = (int) (_imageData.GetLength(0) * factor);
-                _width = (int) (_imageData.GetLength(1) * factor);
-                _imageData = newImage;
+                Height = (int) (ImageData.GetLength(0) * factor);
+                Width = (int) (ImageData.GetLength(1) * factor);
+                ImageData = newImage;
             
         }
         //add check if possible
         public void Minimize(double factor)
         {
             
-                var newImage = new Pixel[(int) (_imageData.GetLength(0) / factor), (int) (_imageData.GetLength(1) / factor)];
+                var newImage = new Pixel[(int) (ImageData.GetLength(0) / factor), (int) (ImageData.GetLength(1) / factor)];
                 for (var line = 0; line < newImage.GetLength(0); line++)
                 {
                     for (var col = 0; col < newImage.GetLength(1); col++)
                     {
-                        newImage[line, col] = new Pixel(_imageData[(int) (line * factor), (int) (col * factor)]);
+                        newImage[line, col] = new Pixel(ImageData[(int) (line * factor), (int) (col * factor)]);
                     }
                 }
 
-                _height =  (int) (_imageData.GetLength(0)/factor);
-                _width = (int) (_imageData.GetLength(1)/factor);
-                _imageData = newImage;
+                Height =  (int) (ImageData.GetLength(0)/factor);
+                Width = (int) (ImageData.GetLength(1)/factor);
+                ImageData = newImage;
         }
         public void Mirror()
         {
-            var newImage = new Pixel[_imageData.GetLength(0), _imageData.GetLength(1)];
-            for (var line = 0; line < _imageData.GetLength(0); line++)
+            var newImage = new Pixel[ImageData.GetLength(0), ImageData.GetLength(1)];
+            for (var line = 0; line < ImageData.GetLength(0); line++)
             {
-                for (var col = 0; col < _imageData.GetLength(1); col++)
+                for (var col = 0; col < ImageData.GetLength(1); col++)
                 {
-                    newImage[line, newImage.GetLength(1) - 1 - col] = _imageData[line, col];
+                    newImage[line, newImage.GetLength(1) - 1 - col] = ImageData[line, col];
                 }
             }
-            _imageData = newImage;
+            ImageData = newImage;
         }
 
         public void ConvolutionFilter(double[,] kernel, double factor = 1.0)
         {
-            var newImageData = new Pixel[_imageData.GetLength(0), _imageData.GetLength(1)];
-            for (var line = 0; line < _imageData.GetLength(0); line++)
+            var newImageData = new Pixel[ImageData.GetLength(0), ImageData.GetLength(1)];
+            for (var line = 0; line < ImageData.GetLength(0); line++)
             {
-                for (var col = 0; col < _imageData.GetLength(1); col++)
+                for (var col = 0; col < ImageData.GetLength(1); col++)
                 {
                     var filteredPixel = new Pixel()
                     {
@@ -181,19 +152,19 @@ namespace Project_Info
                     };
                     for (var kernelLine = 0; kernelLine < kernel.GetLength(0); kernelLine++)
                     {
-                        var imageLine = (line + (kernelLine - kernel.GetLength(0) / 2) + _imageData.GetLength(0)) %
-                                        _imageData.GetLength(0);
+                        var imageLine = (line + (kernelLine - kernel.GetLength(0) / 2) + ImageData.GetLength(0)) %
+                                        ImageData.GetLength(0);
                         for (var kernelCol = 0; kernelCol < kernel.GetLength(1); kernelCol++)
                         {
-                            var imageCol = (col + (kernelCol - kernel.GetLength(1) / 2) + _imageData.GetLength(1)) %
-                                           _imageData.GetLength(1);
+                            var imageCol = (col + (kernelCol - kernel.GetLength(1) / 2) + ImageData.GetLength(1)) %
+                                           ImageData.GetLength(1);
 
                             filteredPixel.Red +=
-                                (int) kernel[kernelLine, kernelCol] * _imageData[imageLine, imageCol].Red;
+                                (int) kernel[kernelLine, kernelCol] * ImageData[imageLine, imageCol].Red;
                             filteredPixel.Blue +=
-                                (int) kernel[kernelLine, kernelCol] * _imageData[imageLine, imageCol].Blue;
+                                (int) kernel[kernelLine, kernelCol] * ImageData[imageLine, imageCol].Blue;
                             filteredPixel.Green +=
-                                (int) kernel[kernelLine, kernelCol] * _imageData[imageLine, imageCol].Green;
+                                (int) kernel[kernelLine, kernelCol] * ImageData[imageLine, imageCol].Green;
                         }
                     }
                     filteredPixel.Red = (int) Math.Abs(filteredPixel.Red * factor);
@@ -208,17 +179,17 @@ namespace Project_Info
                     };
                 }
             }
-            _imageData = newImageData;
+            ImageData = newImageData;
         }
 
         public void DoubleConvolutionFilter(double[,] kernelX, double[,] kernelY, double factor = 1)
         {
-            var newImageData = new Pixel[_imageData.GetLength(0), _imageData.GetLength(1)];
+            var newImageData = new Pixel[ImageData.GetLength(0), ImageData.GetLength(1)];
             if (kernelX.GetLength(0) != kernelY.GetLength(0) || kernelX.GetLength(1) != kernelY.GetLength(1))
                 throw new ArgumentException("KernelX and kernelY must be the same dimensions");
-            for (var line = 0; line < _imageData.GetLength(0); line++)
+            for (var line = 0; line < ImageData.GetLength(0); line++)
             {
-                for (var col = 0; col < _imageData.GetLength(1); col++)
+                for (var col = 0; col < ImageData.GetLength(1); col++)
                 {
                     var filteredPixelX = new Pixel()
                     {
@@ -234,26 +205,26 @@ namespace Project_Info
                     };
                     for (var kernelLine = 0; kernelLine < kernelX.GetLength(0); kernelLine++)
                     {
-                        var imageLine = (line + (kernelLine - kernelX.GetLength(0) / 2) + _imageData.GetLength(0)) %
-                                        _imageData.GetLength(0);
+                        var imageLine = (line + (kernelLine - kernelX.GetLength(0) / 2) + ImageData.GetLength(0)) %
+                                        ImageData.GetLength(0);
                         for (var kernelCol = 0; kernelCol < kernelX.GetLength(1); kernelCol++)
                         {
-                            var imageCol = (col + (kernelCol - kernelX.GetLength(1) / 2) + _imageData.GetLength(1)) %
-                                           _imageData.GetLength(1);
+                            var imageCol = (col + (kernelCol - kernelX.GetLength(1) / 2) + ImageData.GetLength(1)) %
+                                           ImageData.GetLength(1);
 
                             filteredPixelX.Red +=
-                                (int) kernelX[kernelLine, kernelCol] * _imageData[imageLine, imageCol].Red;
+                                (int) kernelX[kernelLine, kernelCol] * ImageData[imageLine, imageCol].Red;
                             filteredPixelX.Blue +=
-                                (int) kernelX[kernelLine, kernelCol] * _imageData[imageLine, imageCol].Blue;
+                                (int) kernelX[kernelLine, kernelCol] * ImageData[imageLine, imageCol].Blue;
                             filteredPixelX.Green +=
-                                (int) kernelX[kernelLine, kernelCol] * _imageData[imageLine, imageCol].Green;
+                                (int) kernelX[kernelLine, kernelCol] * ImageData[imageLine, imageCol].Green;
                             
                             filteredPixelY.Red +=
-                                (int) kernelY[kernelLine, kernelCol] * _imageData[imageLine, imageCol].Red;
+                                (int) kernelY[kernelLine, kernelCol] * ImageData[imageLine, imageCol].Red;
                             filteredPixelY.Blue +=
-                                (int) kernelY[kernelLine, kernelCol] * _imageData[imageLine, imageCol].Blue;
+                                (int) kernelY[kernelLine, kernelCol] * ImageData[imageLine, imageCol].Blue;
                             filteredPixelY.Green +=
-                                (int) kernelY[kernelLine, kernelCol] * _imageData[imageLine, imageCol].Green;
+                                (int) kernelY[kernelLine, kernelCol] * ImageData[imageLine, imageCol].Green;
                         }
                     }
                     filteredPixelX.Red = (int) (filteredPixelX.Red * factor);
@@ -279,41 +250,41 @@ namespace Project_Info
                     };
                 }
             }
-            _imageData = newImageData;
+            ImageData = newImageData;
         }
         
         public void ConvertToGrey()
         {
-            for (var i = 0; i < _height; i++)
+            for (var i = 0; i < Height; i++)
             {
-                for (var j = 0; j < _width ; j++)
+                for (var j = 0; j < Width ; j++)
                 {
                     //Apply conversion equation
-                    var gray = (byte)(.21 * _imageData[i,j].Red + .71 * _imageData[i,j].Green + .071 * _imageData[i,j].Blue);
+                    var gray = (byte)(.21 * ImageData[i,j].Red + .71 * ImageData[i,j].Green + .071 * ImageData[i,j].Blue);
 
                     //Set the color of this pixel
-                    _imageData[i, j].Red = gray;
-                    _imageData[i, j].Green = gray;
-                    _imageData[i, j].Blue = gray;
+                    ImageData[i, j].Red = gray;
+                    ImageData[i, j].Green = gray;
+                    ImageData[i, j].Blue = gray;
                 }
             }
         }
 
         public void RotateAngle(double radians)
         {
-            int newWidth = (int) Math.Abs(Math.Round(Math.Cos(radians) * _width + Math.Sin(radians) * _height));
-            int newHeight = (int) Math.Abs(Math.Round(Math.Sin(radians) * _width + Math.Cos(radians) * _height));
+            int newWidth = (int) Math.Abs(Math.Round(Math.Cos(radians) * Width + Math.Sin(radians) * Height));
+            int newHeight = (int) Math.Abs(Math.Round(Math.Sin(radians) * Width + Math.Cos(radians) * Height));
             var newImageData = new Pixel[newHeight, newWidth];
 
-            var offsets = Functions.GetImageRotationOffset(_imageData, radians);
+            var offsets = Functions.GetImageRotationOffset(ImageData, radians);
 
             var offsetY = offsets[0];
             var offsetX = offsets[1];
 
-            for (var line = 0; line < _imageData.GetLength(0); line++)
+            for (var line = 0; line < ImageData.GetLength(0); line++)
             {
                 var ghostLine = - line;
-                for (var col = 0; col < _imageData.GetLength(1); col++)
+                for (var col = 0; col < ImageData.GetLength(1); col++)
                 {
                     var newLineDouble = Math.Abs(col * Math.Sin(radians) + ghostLine * Math.Cos(radians) + offsetY - newHeight + 1);
                     var newColDouble = Math.Abs(col * Math.Cos(radians) - ghostLine * Math.Sin(radians) + offsetX);
@@ -321,7 +292,7 @@ namespace Project_Info
                     var newCol = Math.Round(newColDouble);
                     if (Math.Abs(newLineDouble - newLine) < Math.Pow(10, -5) && Math.Abs(newColDouble - newCol) < Math.Pow(10, -5))
                     {
-                        newImageData[(int) newLine, (int) newCol] = _imageData[line, col];
+                        newImageData[(int) newLine, (int) newCol] = ImageData[line, col];
                     }
                     else
                     {
@@ -331,19 +302,19 @@ namespace Project_Info
                         var newColMin = (int) Math.Floor(newColDouble);
 
                         
-                            if (newLineMax < newHeight && newColMax < newWidth) newImageData[newLineMax, newColMax] ??= _imageData[line, col];
-                            if (newLineMin >= 0 && newColMax < newWidth) newImageData[newLineMin, newColMax] ??= _imageData[line, col];
-                            if (newLineMax < newHeight && newColMin >= 0) newImageData[newLineMax, newColMin] ??= _imageData[line, col];
-                            if (newLineMin >= 0 && newColMin >= 0) newImageData[newLineMin, newColMin] ??= _imageData[line, col];
+                            if (newLineMax < newHeight && newColMax < newWidth) newImageData[newLineMax, newColMax] ??= ImageData[line, col];
+                            if (newLineMin >= 0 && newColMax < newWidth) newImageData[newLineMin, newColMax] ??= ImageData[line, col];
+                            if (newLineMax < newHeight && newColMin >= 0) newImageData[newLineMax, newColMin] ??= ImageData[line, col];
+                            if (newLineMin >= 0 && newColMin >= 0) newImageData[newLineMin, newColMin] ??= ImageData[line, col];
                         
                     }
                     //Console.WriteLine($"({ghostLine},{col}) ==> ({newLine},{newCol})");
                 }
             }
             Functions.FillImageWhite(newImageData);
-            _height = newHeight;
-            _width = newWidth;
-            _imageData = newImageData;
+            Height = newHeight;
+            Width = newWidth;
+            ImageData = newImageData;
         }
     }
 }

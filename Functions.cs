@@ -319,12 +319,11 @@ namespace Project_Info
         public static Pixel[,] CreateBlackImage(int height, int width)
         {
             var imageData = new Pixel[height, width];
-            var pix = new Pixel(0, 0, 0);
             for (int i = 0; i < imageData.GetLength(0); i++)
             {
                 for (int j = 0; j < imageData.GetLength(1); j++)
                 {
-                    imageData[i, j] = pix;
+                    imageData[i, j] = new Pixel(0, 0, 0);
                 }
             }
             return imageData;
