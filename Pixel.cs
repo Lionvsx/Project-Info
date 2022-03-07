@@ -17,7 +17,7 @@ namespace Project_Info
 
         public Pixel()
         {
-            this._red = 0;
+            _red = 0;
             this._blue = 0;
             this._green = 0;
         }

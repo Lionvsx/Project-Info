@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Drawing;
+using System.Drawing.Imaging;
 
 
 namespace Project_Info
@@ -259,18 +260,18 @@ namespace Project_Info
         }
 
         public static Image Histograme(Image im)
-        {
-            var coefwidth = (int)(Math.Ceiling(im.Height/256.0))*10;
-            var newHeight = im.Height*10;
+        { 
+            var coefwidth = im.Height/256+1;
+            var newHeight = im.Height;
             var newWidth = 256*coefwidth;
             var histo = new Image(im.Type, im.Offset, newHeight, newWidth, im.BitRgb,
-                CreateBlackImage(im.Height * 10, 256 * coefwidth));
+                CreateBlackImage(im.Height, 256 * coefwidth));
            
             
             var rgbColor = new [] {new int[256], new int[256], new int[256]};
-            for (var i = 0; i < im.ImageData.GetLength(0); i++)
+            for (var i = 0; i < im.Height; i++)
             {
-                for (var j = 0; j < im.ImageData.GetLength(1); j++)
+                for (var j = 0; j < im.Width; j++)
                 {
                     rgbColor[0][ im.ImageData[i, j].Red]++;                            // Red
                     rgbColor[1][ im.ImageData[i, j].Green]++;
@@ -278,25 +279,24 @@ namespace Project_Info
                 }
             }
             
-            
-            for (var k = 0; k < histo.ImageData.GetLength(1); k+=coefwidth)
+            for (var k = 0; k < histo.Width; k+=coefwidth)
             {
                 
                 for (var rep = 0; rep < coefwidth; rep++)
                 {
-                    for (var l = 0; l < rgbColor[0][k / coefwidth]; l++)
+                    for (var l = 0; l < rgbColor[0][k / coefwidth]/10; l++)
                     {
-                        histo.ImageData[histo.ImageData.GetLength(0)-1-l, k+rep].Red = 255;
+                        histo.ImageData[histo.Height-1-l, k+rep].Red = 255;
                     }
 
-                    for (var m = 0; m < rgbColor[1][k / coefwidth]; m++)
+                    for (var m = 0; m < rgbColor[1][k / coefwidth]/10; m++)
                     {
-                        histo.ImageData[histo.ImageData.GetLength(0)-1-m, k+rep].Blue = 255;
+                        histo.ImageData[histo.Height-1-m, k+rep].Green = 255;
                     }
 
-                    for (var n = 0; n < rgbColor[2][k / coefwidth]; n++)
+                    for (var n = 0; n < rgbColor[2][k /coefwidth]/10; n++)
                     {
-                        histo.ImageData[histo.ImageData.GetLength(0)-1-n, k+rep].Green = 255;
+                        histo.ImageData[histo.Height-1-n, k+rep].Blue = 255;
                     }
                 }
             }
@@ -319,12 +319,13 @@ namespace Project_Info
         public static Pixel[,] CreateBlackImage(int height, int width)
         {
             var imageData = new Pixel[height, width];
-            var pix = new Pixel(0, 0, 0);
+           
             for (int i = 0; i < imageData.GetLength(0); i++)
             {
                 for (int j = 0; j < imageData.GetLength(1); j++)
                 {
-                    imageData[i, j] = pix;
+                    
+                    imageData[i, j] = new Pixel(0, 0, 0);
                 }
             }
             return imageData;
