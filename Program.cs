@@ -11,22 +11,10 @@ namespace Project_Info
 
         static void Main(string[] args)
         {
-            var test = Functions.ReadImage(@"../../../images/lac.bmp");
-
-            //test.ConvertToGrey();
-            //test.DoubleConvolutionFilter(Kernel.SobelX, Kernel.SobelY);
-            //test.ConvolutionFilter(Kernel.Contour);
-            //test.RotateAngle(Math.PI / 8);
-            //test.DisplayImage();
-            //test.Rotate90L();
-           
-           //test.RotateAngle(3*Math.PI/2);
-          //test.Maximize(25);
-           //test.RotateAngle(Math.PI);
-           var testb = Functions.Histograme(test);
-           
-           Functions.WriteImage(testb, @"../../../images/Test6.bmp");
-          
+            //var test = Functions.ReadImage("../../../images/Test.bmp");
+            
+            var QRTest = new QRCode(4, 0, 2);
+            Functions.WriteImage(QRTest, "../../../images/Test7.bmp");
 
 
 
