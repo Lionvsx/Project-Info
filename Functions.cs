@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Drawing;
-using System.Drawing.Imaging;
 
 
 namespace Project_Info
@@ -331,6 +329,47 @@ namespace Project_Info
             return imageData;
         }
         
+        public static IEnumerable<string> ReadFile(string path)
+        {
+            var lines = new Stack<string>();
+            try
+            {
+                using var sr = new StreamReader(path);
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    lines.Push(line);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("The file could not be read:");
+                Console.WriteLine(e.Message);
+                throw new IOException();
+                
+            }
+
+            return lines.ToArray().Reverse();
+        }
+        
+        public static void WriteFile(IEnumerable<string> lines, string path)
+        {
+            try
+            {
+                using var sw = new StreamWriter(path);
+                foreach (var line in lines)
+                {
+                    sw.WriteLine(line);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("An error has occured while trying to write file");
+                Console.WriteLine(e.Message);
+                throw new IOException();
+            }
+        }
+        
         public static void FillImageWhite(Pixel[,] imageData)
         {
             for (int i = 0; i < imageData.GetLength(0); i++)
@@ -340,6 +379,24 @@ namespace Project_Info
                     imageData[i, j] ??= new Pixel(255, 255, 255);
                 }
             }
+        }
+        public static IEnumerable<T[]> Combinations<T>(IEnumerable<T> source) {
+            if (null == source)
+                throw new ArgumentNullException(nameof(source));
+
+            var data = source.ToArray();
+
+            return Enumerable
+                .Range(0, 1 << (data.Length))
+                .Select(index => data
+                    .Where((v, i) => (index & (1 << i)) != 0)
+                    .ToArray());
+        }
+
+        public static IEnumerable<int[]> DoubleIntCombinations<T>(IEnumerable<int> source)
+        {
+            var combinations = Combinations(source);
+            return combinations.Where(v => v.Length == 2).ToArray();
         }
 
         public static int[] GetImageRotationOffset(Pixel[,] imageData, double radians)
