@@ -418,5 +418,31 @@ namespace Project_Info
 
             return new int[] {yOffsets.Max(), xOffsets.Max()};
         }
+
+        public static Image Hide(Image bigImage, Image smallImage)
+        {
+            var hei = 1+ bigImage.Height / smallImage.Height;
+            var wid = 1+ bigImage.Width / smallImage.Width;
+            bigImage.ImageData[bigImage.ImageData.GetLength(0) - 1, bigImage.ImageData.GetLength(1) - 1].Red =
+                (0xF0 & (byte) (bigImage
+                    .ImageData[bigImage.ImageData.GetLength(0) - 1, bigImage.ImageData.GetLength(1) - 1].Red)) |
+                (0xF0 & (byte) (hei) >> 4);
+            bigImage.ImageData[bigImage.ImageData.GetLength(0) - 1, bigImage.ImageData.GetLength(1) - 1].Blue =
+                (0xF0 & (byte) (bigImage
+                    .ImageData[bigImage.ImageData.GetLength(0) - 1, bigImage.ImageData.GetLength(1) - 1].Blue)) |
+                (0xF0 & (byte) (wid) >> 4);
+            
+            for (var x = 0; x < bigImage.Height; x+=hei)
+            {
+                for (var y = 0; y < bigImage.Width; y+=wid)
+                {
+                    bigImage.ImageData[x, y].Red = (0xF0&(byte)(bigImage.ImageData[x, y].Red))| ((0xF0&(byte)(smallImage.ImageData[x/hei, y/wid].Red))>>4);
+                    bigImage.ImageData[x, y].Green = (0xF0&(byte)(bigImage.ImageData[x, y].Green))| (0xF0&(byte)(smallImage.ImageData[x/hei, y/wid].Green)>>4);
+                    bigImage.ImageData[x, y].Blue = (0xF0&(byte)(bigImage.ImageData[x, y].Blue))| ((0xF0&(byte)(smallImage.ImageData[x/hei, y/wid].Blue))>>4);
+                }
+            }
+            return bigImage;
+        }
+        
     }
 }
