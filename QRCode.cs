@@ -8,9 +8,9 @@ namespace Project_Info
     {
         private int _maskPattern;
         private int _correctionLevel;
-        private int _version;
-        private int _quietZoneWidth;
-        private int _moduleWidth;
+        private readonly int _version;
+        private readonly int _quietZoneWidth;
+        private readonly int _moduleWidth;
 
 
         public QRCode(int version, int quietZoneWidth, int moduleWidth)
@@ -29,20 +29,26 @@ namespace Project_Info
             CreateEmptyQrCode();
         }
 
-        public void CreateEmptyQrCode()
+        private void CreateEmptyQrCode()
         {
-            
             CreateFinderPatterns(0+_quietZoneWidth, 0+_quietZoneWidth);
+            CreateSeparators(0 + _quietZoneWidth, 0 + _quietZoneWidth);
             CreateFinderPatterns(Height - _quietZoneWidth - 7 * _moduleWidth, 0 + _quietZoneWidth);
+            CreateSeparators(Height - _quietZoneWidth - 8 * _moduleWidth, 0 + _quietZoneWidth);
             CreateFinderPatterns(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 7 * _moduleWidth);
+            CreateSeparators(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 8 * _moduleWidth);
             CreateAlignmentPatterns();
             CreateTimingPatterns();
             AddDarkModule();
+            AddVersionInformation();
+            _maskPattern = 4;
+            _correctionLevel = 1;
+            AddFormatInformation();
 
             Functions.FillImageWhite(ImageData);
         }
 
-        public void CreateFinderPatterns(int line, int col)
+        private void CreateFinderPatterns(int line, int col)
         {
             var spacing = (_moduleWidth - 1);
             for (int i = line; i < 7 * _moduleWidth + line; i++)
@@ -50,10 +56,10 @@ namespace Project_Info
                 for (int j = col; j < 7* _moduleWidth + col; j++)
                 {
                     if (j < col + _moduleWidth || i < line + _moduleWidth) ImageData[i, j] = new Pixel(0, 0, 0);
-                    if (j > col + 6 * _moduleWidth -1 ||
+                    else if (j > col + 6 * _moduleWidth -1 ||
                         i > line + 6 * _moduleWidth -1) ImageData[i, j] = new Pixel(0, 0, 0);
-                    
-                    if (j >= col + 2 * _moduleWidth &&
+
+                    else if (j >= col + 2 * _moduleWidth &&
                         i >= line + 2 * _moduleWidth &&
                         j <= col + 6 * _moduleWidth - 2 * _moduleWidth + spacing &&
                         i <= line + 6 * _moduleWidth - 2 * _moduleWidth + spacing) ImageData[i, j] = new Pixel(0, 0, 0);
@@ -61,7 +67,18 @@ namespace Project_Info
             }
         }
 
-        public void CreateTimingPatterns()
+        private void CreateSeparators(int line, int col)
+        {
+            for (int i = line; i < 8 * _moduleWidth + line; i++)
+            {
+                for (int j = col; j < 8* _moduleWidth + col; j++)
+                {
+                    ImageData[i, j] ??= new Pixel(255, 255, 255);
+                }
+            }
+        }
+
+        private void CreateTimingPatterns()
         {
             for (int line = 7 * _moduleWidth + _quietZoneWidth; line <= Height - 7 * _moduleWidth - _quietZoneWidth; line++)
             {
@@ -80,7 +97,7 @@ namespace Project_Info
             }
         }
 
-        public void AddDarkModule()
+        private void AddDarkModule()
         {
             var startingLine = (4 * _version + 9)*_moduleWidth +_quietZoneWidth;
             for (int col = 8*_moduleWidth + _quietZoneWidth; col < _moduleWidth * 9 + _quietZoneWidth; col++)
@@ -94,23 +111,69 @@ namespace Project_Info
 
         public void AddFormatInformation()
         {
-            
+            var formatBinary = EncodeFormatInfo(GetFormatInfo());
+            var fixedLine = 8 * _moduleWidth + _quietZoneWidth;
+            var fixedCol = 8 * _moduleWidth + _quietZoneWidth;
+
+            var movingCol = 0 + _quietZoneWidth;
+            var movingLine = ImageData.GetLength(0) -1 - _quietZoneWidth - (_moduleWidth - 1);
+            foreach (var bit in formatBinary)
+            {
+                if (ImageData[movingLine, fixedCol] != null) movingLine -= 1 * _moduleWidth;
+                if (ImageData[fixedLine, movingCol] != null) movingCol += 1 * _moduleWidth;
+                
+                for (var l = 0; l < _moduleWidth; l++)
+                {
+                    for (var c = 0; c < _moduleWidth; c++)
+                    {
+                        ImageData[fixedLine + l, movingCol + c] =
+                            bit == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
+                        ImageData[movingLine + l, fixedCol + c] =
+                            bit == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
+                    }
+                }
+                if (movingLine-1*_moduleWidth == (4 * _version + 9) * _moduleWidth + _quietZoneWidth)
+                {
+                    movingLine = 9 * _moduleWidth + _quietZoneWidth;
+                    continue;
+                }
+                if (movingCol == 8 * _moduleWidth + _quietZoneWidth)
+                {
+                    movingCol = ImageData.GetLength(1) - _quietZoneWidth - 8 * _moduleWidth;
+                    continue;
+                }
+                movingLine -= 1 * _moduleWidth;
+                movingCol += 1 * _moduleWidth;
+            }
         }
 
-        public void CreateAlignmentPatterns()
+
+        private void AddVersionInformation()
+        {
+            if (_version < 7) return;
+            var bitArray = GetQRVersion();
+            for (int i = 0; i < bitArray.Length; i++)
+            {
+                var newPixel = bitArray[i] == 1 ? new Pixel(0, 0, 0) : new Pixel(255, 255, 255);
+                var line = (2 - i % 3) * _moduleWidth + ImageData.GetLength(0) - 11 * _moduleWidth - _quietZoneWidth;
+                var col = (5 - i / 3) * _moduleWidth + _quietZoneWidth;
+                for (var l = line; l < _moduleWidth + line; l++)
+                {
+                    for (var c = col; c < _moduleWidth + col; c++)
+                    {
+                        ImageData[l, c] = newPixel;
+                        ImageData[c, l] = newPixel;
+                    }
+                }
+            }
+        }
+
+        private void CreateAlignmentPatterns()
         {
             var spacing = (_moduleWidth - 1);
             if (_version < 2) return;
             var coordinates = new List<int>(GetQRAlignmentCoordinates());
-            //var coordinates = new List<int>() { _quietZoneWidth + 6 * _moduleWidth, Width - _quietZoneWidth - 6 * _moduleWidth - 1 - spacing};
-            // if (_version is > 6 and <= 13) coordinates.Add(Width/2 - _moduleWidth/2);
-            // if (_version > 13 )
-            // {
-            //     var space = (Width - 2 * _moduleWidth * 7 - 2*_quietZoneWidth)/ _moduleWidth / 3;
-            //     coordinates.AddRange(new[] {(space + 7)*_moduleWidth + _quietZoneWidth, (space * 2 + 7 + 1)*_moduleWidth + _quietZoneWidth});
-            // }
-
-
+            
             var arrayOfCoordinates = Functions.DoubleIntCombinations<int[]>(coordinates);
             foreach (var item in arrayOfCoordinates)
             {
@@ -142,18 +205,61 @@ namespace Project_Info
             }
         }
 
-        public int[] GetQRAlignmentCoordinates()
+        private int[] GetQRAlignmentCoordinates()
         {
             var lines = Functions.ReadFile("../../../qrSettings.txt").ToArray();
             var selectedLine = lines[_version-2];
             var coordinates = selectedLine.Split(";");
-            Console.WriteLine(coordinates);
             int[] result = new int[coordinates.Length-1];
             for (var i = 1; i < coordinates.Length; i++)
             {
                 result[i - 1] = Convert.ToInt32(coordinates[i])*_moduleWidth + _quietZoneWidth;
             }
             return result;
+        }
+
+        private int[] GetQRVersion()
+        {
+            var lines = Functions.ReadFile("../../../qrVersion.txt").ToArray();
+            if (_version < 7) return Array.Empty<int>();
+            var selectedLine = lines[_version-7];
+            var coordinates = selectedLine.Split(";");
+            int[] result = new int[coordinates[1].Length];
+            for (var i = 0; i < coordinates[1].Length; i++)
+            {
+                result[i] = (int) coordinates[1][i] - 48;
+            }
+            return result;
+        }
+
+        public int[] GetFormatInfo()
+        {
+            var maskBinary = Functions.ConvertIntToBinaryArray(_maskPattern);
+            if (maskBinary.Length < 3) maskBinary = Functions.UnShift(maskBinary, 2);
+            var correctionLevelBinary = Functions.ConvertIntToBinaryArray(_correctionLevel);
+            if (correctionLevelBinary.Length < 2) correctionLevelBinary = Functions.UnShift(correctionLevelBinary, 2);
+            return correctionLevelBinary.Concat(maskBinary).ToArray();
+        }
+
+        private static int[] EncodeFormatInfo(int[] format)
+        {
+            var newFormat = Functions.TrimAndPad(format, 14);
+
+            var polynomial = new[] {1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1};
+            var newPoly = Functions.TrimAndPad(polynomial, 14);
+            var division = Functions.XOR(newFormat, newPoly);
+            division = Functions.Trim(division);
+            while (division.Length > 10)
+            {
+                newPoly = Functions.TrimAndPad(polynomial, division.Length);
+                division = Functions.XOR(division, newPoly);
+                division = Functions.Trim(division);
+            }
+            if (division.Length < 10) division = Functions.Pad(division, 10);
+
+            var mask = new[] {1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0};
+            
+            return Functions.XOR(mask, format.Concat(division).ToArray());
         }
     }
 }

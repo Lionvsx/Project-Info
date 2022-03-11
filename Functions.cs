@@ -351,7 +351,7 @@ namespace Project_Info
 
             return lines.ToArray().Reverse();
         }
-        
+
         public static void WriteFile(IEnumerable<string> lines, string path)
         {
             try
@@ -391,6 +391,52 @@ namespace Project_Info
                 .Select(index => data
                     .Where((v, i) => (index & (1 << i)) != 0)
                     .ToArray());
+        }
+
+        public static int[] XOR(int[] x, int[] y)
+        {
+            var result = new int[x.Length];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = x[i] == 1 && y[i] == 1 ? 0 : x[i] != y[i] ? 1 : 0;
+            }
+            return result;
+        }
+
+        public static int[] ConvertIntToBinaryArray(int value)
+        {
+            var binaryString = Convert.ToString(value, 2);
+            var result = new int[binaryString.Length];
+            for (var index = 0; index < binaryString.Length; index++)
+            {
+                result[index] = binaryString[index] - 48;
+            }
+            return result;
+        }
+
+        public static int[] TrimAndPad(int[] array, int desiredLength)
+        {
+            while (array[0] == 0) array = array.Skip(1).ToArray();
+            var zerosArray = Enumerable.Repeat(0, desiredLength - array.Length);
+            return array.Concat(zerosArray).ToArray();
+        }
+        
+        public static int[] Pad(int[] array, int desiredLength)
+        {
+            var zerosArray = Enumerable.Repeat(0, desiredLength - array.Length);
+            return array.Concat(zerosArray).ToArray();
+        }
+        
+        public static int[] UnShift(int[] array, int desiredLength)
+        {
+            var zerosArray = Enumerable.Repeat(0, desiredLength - array.Length);
+            return zerosArray.Concat(array).ToArray();
+        }
+        
+        public static int[] Trim(int[] array)
+        {
+            while (array[0] == 0) array = array.Skip(1).ToArray();
+            return array;
         }
 
         public static IEnumerable<int[]> DoubleIntCombinations<T>(IEnumerable<int> source)
