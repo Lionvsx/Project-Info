@@ -467,28 +467,54 @@ namespace Project_Info
 
         public static Image Hide(Image bigImage, Image smallImage)
         {
-            var hei = 1+ bigImage.Height / smallImage.Height;
-            var wid = 1+ bigImage.Width / smallImage.Width;
+            var coef = 0;
+            if (bigImage.Height > bigImage.Width)
+            {
+                if (smallImage.Height > smallImage.Width) coef = (bigImage.Width / smallImage.Width);
+                else coef = (bigImage.Width / smallImage.Height);
+
+            }
+            else
+            {
+                if (smallImage.Height > smallImage.Width) coef = (bigImage.Height / smallImage.Width);
+                else coef = (bigImage.Height / smallImage.Height);
+            }
+            
             bigImage.ImageData[bigImage.ImageData.GetLength(0) - 1, bigImage.ImageData.GetLength(1) - 1].Red =
                 (0xF0 & (byte) (bigImage
                     .ImageData[bigImage.ImageData.GetLength(0) - 1, bigImage.ImageData.GetLength(1) - 1].Red)) |
-                (0xF0 & (byte) (hei) >> 4);
-            bigImage.ImageData[bigImage.ImageData.GetLength(0) - 1, bigImage.ImageData.GetLength(1) - 1].Blue =
-                (0xF0 & (byte) (bigImage
-                    .ImageData[bigImage.ImageData.GetLength(0) - 1, bigImage.ImageData.GetLength(1) - 1].Blue)) |
-                (0xF0 & (byte) (wid) >> 4);
+                (byte) coef;
             
-            for (var x = 0; x < bigImage.Height; x+=hei)
+            
+            for (var x = 0; x < bigImage.Height; x+=coef)
             {
-                for (var y = 0; y < bigImage.Width; y+=wid)
+                for (var y = 0; y < bigImage.Width; y+=coef)
                 {
-                    bigImage.ImageData[x, y].Red = (0xF0&(byte)(bigImage.ImageData[x, y].Red))| ((0xF0&(byte)(smallImage.ImageData[x/hei, y/wid].Red))>>4);
-                    bigImage.ImageData[x, y].Green = (0xF0&(byte)(bigImage.ImageData[x, y].Green))| (0xF0&(byte)(smallImage.ImageData[x/hei, y/wid].Green)>>4);
-                    bigImage.ImageData[x, y].Blue = (0xF0&(byte)(bigImage.ImageData[x, y].Blue))| ((0xF0&(byte)(smallImage.ImageData[x/hei, y/wid].Blue))>>4);
+                    bigImage.ImageData[x, y].Red = (0xF0&(byte)bigImage.ImageData[x, y].Red)| ((0xF0&(byte)(smallImage.ImageData[x/coef, y/coef].Red))>>4);
+                    bigImage.ImageData[x, y].Green = (0xF0&(byte)bigImage.ImageData[x, y].Green)| ((0xF0&(byte)(smallImage.ImageData[x/coef, y/coef].Green))>>4);
+                    bigImage.ImageData[x, y].Blue = (0xF0&(byte)bigImage.ImageData[x, y].Blue)| ((0xF0&(byte)(smallImage.ImageData[x/coef, y/coef].Blue))>>4);
                 }
             }
             return bigImage;
         }
-        
+
+        public static Image Found(Image image)
+        {
+            var coef = 0x0F & image.ImageData[image.ImageData.GetLength(0) - 1, image.ImageData.GetLength(1)-1].Red;
+            
+            var newimdata = CreateBlackImage(image.Height / (coef), image.Width / (coef));
+            
+            for (var x = 0; x < newimdata.GetLength(0); x++)
+            {
+                for (var y = 0; y < newimdata.GetLength(1); y++)
+                {
+                    newimdata[x, y].Red = (0x0F & (byte)(image.ImageData[x*(coef) , y*(coef) ].Red))<<4;
+                    newimdata[x, y].Green = (0x0F & (byte)(image.ImageData[x*(coef) , y*(coef) ].Green))<<4;
+                    newimdata[x, y].Blue = (0x0F & (byte)(image.ImageData[x*(coef), y*(coef) ].Blue))<<4;
+                }
+            }
+            var newimage = new Image(image.Type,image.Offset,newimdata.GetLength(0),newimdata.GetLength(1), image.BitRgb, newimdata);
+            return newimage;
+        }
     }
 }
