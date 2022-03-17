@@ -85,6 +85,7 @@ namespace Project_Info
                 for (int col = 6*_moduleWidth + _quietZoneWidth; col < _moduleWidth * 7 + _quietZoneWidth; col++)
                 {
                     if ((line - _quietZoneWidth) / _moduleWidth % 2 == 0) ImageData[line, col] = new Pixel(0, 0, 0);
+                    else ImageData[line, col] = new Pixel(255, 255, 255);
                 }
             }
             
@@ -93,6 +94,7 @@ namespace Project_Info
                 for (int line = 6*_moduleWidth + _quietZoneWidth; line < _moduleWidth * 7 + _quietZoneWidth; line++)
                 {
                     if ((col - _quietZoneWidth) / _moduleWidth % 2 == 0) ImageData[line, col] = new Pixel(0, 0, 0);
+                    else ImageData[line, col] = new Pixel(255, 255, 255);
                 }
             }
         }
