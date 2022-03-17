@@ -26,11 +26,11 @@ namespace Project_Info
            var testb = Functions.Hide(test,test_);
            
            Functions.WriteImage(testb, @"../../../images/Test6.bmp");
-          
-            //var test = Functions.ReadImage("../../../images/Test.bmp");
-            
-            var QRTest = new QRCode(4, 0, 2);
-            Functions.WriteImage(QRTest, "../../../images/Test7.bmp");
+           var testc = Functions.Found(testb);
+           Functions.WriteImage(testc, @"../../../images/Test7.bmp");
+           //var test = Functions.ReadImage("../../../images/Test.bmp");
+
+
 
 
 
