@@ -468,16 +468,15 @@ namespace Project_Info
         public static Image Hide(Image bigImage, Image smallImage)
         {
             var coef = 0;
-            if (bigImage.Height > bigImage.Width)
+            if (bigImage.Width / smallImage.Width > bigImage.Height / smallImage.Height)
             {
-                if (smallImage.Height > smallImage.Width) coef = (bigImage.Width / smallImage.Width);
-                else coef = (bigImage.Width / smallImage.Height);
+                coef = bigImage.Width / smallImage.Width;
+                
 
             }
             else
             {
-                if (smallImage.Height > smallImage.Width) coef = (bigImage.Height / smallImage.Width);
-                else coef = (bigImage.Height / smallImage.Height);
+                coef = bigImage.Height / smallImage.Height;
             }
             
             bigImage.ImageData[bigImage.ImageData.GetLength(0) - 1, bigImage.ImageData.GetLength(1) - 1].Red =
