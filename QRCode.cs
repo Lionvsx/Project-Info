@@ -14,6 +14,8 @@ namespace Project_Info
         private readonly int _moduleWidth;
         private int[] _mode;
         private static Dictionary<char, int> _alphanumericTable;
+        private int _numberDataCodewords;
+        private int _numberECCodewords;
 
 
         public QRCode(int version, int quietZoneWidth, int moduleWidth)
@@ -237,7 +239,32 @@ namespace Project_Info
             return result;
         }
 
-        public int[] GetFormatInfo()
+        private void SetCodeDataLengthInfo()
+        {
+            var lines = Functions.ReadFile("../../../qrCodeDataLength.txt").ToArray();
+            var lineIndex = _correctionLevel switch
+            {
+                1 => 0,
+                3 => 2,
+                2 => 3,
+                _ => 1
+            };
+
+            var selectedLine = lines[_version * 4 + lineIndex];
+            
+            var infos = selectedLine.Split(";");
+            var result = new int[infos.Length-2];
+            for (var i = 1; i < infos.Length-1; i++)
+            {
+                result[i - 1] = Convert.ToInt32(infos[i]);
+            }
+
+            _numberDataCodewords = result[0];
+            _numberECCodewords = result[1];
+            
+        }
+
+        private int[] GetFormatInfo()
         {
             var maskBinary = Functions.ConvertIntToBinaryArray(_maskPattern);
             if (maskBinary.Length < 3) maskBinary = Functions.UnShift(maskBinary, 2);
@@ -293,6 +320,8 @@ namespace Project_Info
                     result.AddRange(Functions.IntToDesiredLengthBit(value, 6));
                 }
             }
+            
+            //ADD Terminator
 
             return result.Count % 8 != 0
                 ? Functions.Pad(result.ToArray(), result.Count + result.Count % 8)
