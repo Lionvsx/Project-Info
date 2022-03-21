@@ -497,6 +497,11 @@ namespace Project_Info
             return bigImage;
         }
 
+        public static int[] IntToDesiredLengthBit(int value, int desiredLength)
+        {
+            return UnShift(ConvertIntToBinaryArray(value), desiredLength);
+        }
+
         public static Image Found(Image image)
         {
             var coef = 0x0F & image.ImageData[image.ImageData.GetLength(0) - 1, image.ImageData.GetLength(1)-1].Red;
@@ -512,8 +517,8 @@ namespace Project_Info
                     newimdata[x, y].Blue = (0x0F & (byte)(image.ImageData[x*(coef), y*(coef) ].Blue))<<4;
                 }
             }
-            var newimage = new Image(image.Type,image.Offset,newimdata.GetLength(0),newimdata.GetLength(1), image.BitRgb, newimdata);
-            return newimage;
+            var newImage = new Image(image.Type,image.Offset,newimdata.GetLength(0),newimdata.GetLength(1), image.BitRgb, newimdata);
+            return newImage;
         }
     }
 }
