@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace Project_Info
 {
@@ -273,15 +274,29 @@ namespace Project_Info
             var result = new List<int>(_mode);
             var wordLength = word.Length;
 
-            var wordLengthBits = Functions.UnShift(Functions.ConvertIntToBinaryArray(wordLength),
+            var wordLengthBits = Functions.IntToDesiredLengthBit(wordLength,
                 _version < 10 ? 9 : _version < 27 ? 11 : 13);
             result.AddRange(wordLengthBits);
-            
-            foreach (var character in word)
+
+            for (var i = 0; i < word.Length; i++)
             {
+                if (i % 2 == 0)
+                {
+                    _alphanumericTable.TryGetValue(word[i], out var highValue);
+                    _alphanumericTable.TryGetValue(word[i + 1], out var lowValue);
+
+                    result.AddRange(Functions.IntToDesiredLengthBit(highValue * 45 + lowValue, 11));
+                }
+                if (i == wordLength - 1 && wordLength % 2 == 1)
+                {
+                    _alphanumericTable.TryGetValue(word[i], out var value);
+                    result.AddRange(Functions.IntToDesiredLengthBit(value, 6));
+                }
             }
 
-            return result.ToArray();
+            return result.Count % 8 != 0
+                ? Functions.Pad(result.ToArray(), result.Count + result.Count % 8)
+                : result.ToArray();
         }
 
         public static void InitializeAlphaNumericTable()
