@@ -11,6 +11,8 @@ namespace Project_Info
         private readonly int _version;
         private readonly int _quietZoneWidth;
         private readonly int _moduleWidth;
+        private int[] _mode;
+        private static Dictionary<char, int> _alphanumericTable;
 
 
         public QRCode(int version, int quietZoneWidth, int moduleWidth)
@@ -262,6 +264,34 @@ namespace Project_Info
             var mask = new[] {1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0};
             
             return Functions.XOR(mask, format.Concat(division).ToArray());
+        }
+
+        private int[] EncodeStringData(string word)
+        {
+            word = word.ToUpper();
+            _mode = new[] {0, 0, 1, 0};
+            var result = new List<int>(_mode);
+            var wordLength = word.Length;
+
+            var wordLengthBits = Functions.UnShift(Functions.ConvertIntToBinaryArray(wordLength),
+                _version < 10 ? 9 : _version < 27 ? 11 : 13);
+            result.AddRange(wordLengthBits);
+            
+            foreach (var character in word)
+            {
+            }
+
+            return result.ToArray();
+        }
+
+        public static void InitializeAlphaNumericTable()
+        {
+            var tableData = Functions.ReadFile("../../../alphanumericTable.txt");
+            foreach (var item in tableData)
+            {
+                var args = item.Split(';');
+                _alphanumericTable.Add(Convert.ToChar(args[1]), Convert.ToInt32(args[0]));
+            }
         }
     }
 }
