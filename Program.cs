@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Drawing.Drawing2D;
+using System.Linq;
+using System.Text;
+using ReedSolomon;
 
 namespace Project_Info
 {
@@ -11,31 +15,25 @@ namespace Project_Info
 
         static void Main(string[] args)
         {
-            var test = Functions.ReadImage(@"../../../images/lac.bmp");
-            var test_ = Functions.ReadImage(@"../../../images/coco.bmp");
-            //test.ConvertToGrey();
-            //test.DoubleConvolutionFilter(Kernel.SobelX, Kernel.SobelY);
-            //test.ConvolutionFilter(Kernel.Contour);
-            //test.RotateAngle(Math.PI / 8);
-            //test.DisplayImage();
-            //test.Rotate90L();
-           
-           //test.RotateAngle(3*Math.PI/2);
-          //test.Maximize(25);
-           //test.RotateAngle(Math.PI);
-           var testb = Functions.Hide(test,test_);
-           
-           Functions.WriteImage(testb, @"../../../images/Test6.bmp");
-           var testc = Functions.Found(testb);
-           Functions.WriteImage(testc, @"../../../images/Test7.bmp");
-           //var test = Functions.ReadImage("../../../images/Test.bmp");
+            QRCode.InitializeAlphaNumericTable();
+            //var test = Functions.ReadImage("../../../images/Test.bmp");
+            var bjr = Functions.ConvertIntToBinaryArray(1);
+            var QRTest = new QRCode(36, 5, 1);
+            Functions.WriteImage(QRTest, "../../../images/Test7.bmp");
+            Encoding u8 = Encoding.UTF8;
+            string a = "HELLO WORLD";
+            byte[] bytesa = u8.GetBytes(a);
+            
 
 
+            byte[] result = ReedSolomonAlgorithm.Encode(bytesa, 7, ErrorCorrectionCodeType.QRCode);
 
-
-
-
-
+            foreach (byte val in result)
+            {
+                Console.Write(val + " ");
+                var inttab = Functions.ConvertIntToBinaryArray(val);
+            }
+            
         }
     }
 }
