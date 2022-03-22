@@ -470,9 +470,7 @@ namespace Project_Info
             var coef = 0;
             if (bigImage.Width / smallImage.Width > bigImage.Height / smallImage.Height)
             {
-                coef = bigImage.Width / smallImage.Width;
-                
-
+                coef = bigImage.Width / smallImage.Width; 
             }
             else
             {

@@ -328,6 +328,60 @@ namespace Project_Info
                 : result.ToArray();
         }
 
+        public void DataEncoding(int[] chain)
+        {
+            var upp = true;
+            var cpt = 0;
+            while (cpt < chain.Length)
+            {
+                for (var i = Width - 1; i >= 2; i -=2)
+                {
+                    if (upp)
+                    {
+                        for (var j = Height - 1; j >= 0; j--)
+                        {
+                            if (ImageData[i, j] == null)
+                            {
+                                if (chain[cpt] == 0) ImageData[i, j] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[i, j] = new Pixel(0, 0, 0);
+                                cpt++;
+                            }
+
+                            if (ImageData[i - 1, j] == null)
+                            {
+                                if (chain[cpt] == 0) ImageData[i, j] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[i, j] = new Pixel(0, 0, 0);
+                                cpt++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (var j = 0; j <Height; j++)
+                        {
+                            if (ImageData[i, j] == null)
+                            {
+                                if (chain[cpt] == 0) ImageData[i, j] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[i, j] = new Pixel(0, 0, 0);
+                                cpt++;
+                            }
+
+                            if (ImageData[i - 1, j] == null)
+                            {
+                                if (chain[cpt] == 0) ImageData[i, j] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[i, j] = new Pixel(0, 0, 0);
+                                cpt++;
+                            }
+                        }
+                    }
+
+                    upp = !upp;
+
+                }
+            }
+        }
+
+        
         public static void InitializeAlphaNumericTable()
         {
             var tableData = Functions.ReadFile("../../../alphanumericTable.txt");
