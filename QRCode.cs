@@ -389,14 +389,14 @@ namespace Project_Info
         {
             var upp = true;
             var cpt = 0;
-            while (cpt < chain.Length - Height)
-            {
-                for (var i = Width - 1; i >= 2; i -=2)
+            
+                for (var i = Width - 1-_quietZoneWidth; i >= 2+_quietZoneWidth; i -=2)
                 {
                     if (upp)
                     {
-                        for (var j = Height - 1; j >= 0; j--)
+                        for (var j = Height - 1-_quietZoneWidth; j >= 0+_quietZoneWidth; j--)
                         {
+                            if (cpt >= chain.Length) break;
                             if (ImageData[i, j] == null)
                             {
                                 if (chain[cpt] == 0) ImageData[i, j] = new Pixel(255, 255, 255);
@@ -414,8 +414,10 @@ namespace Project_Info
                     }
                     else
                     {
-                        for (var j = 0; j <Height; j++)
+                        for (var j = 0+_quietZoneWidth; j <Height-_quietZoneWidth; j++)
                         {
+                            if (cpt >= chain.Length) break;
+
                             if (ImageData[i, j] == null)
                             {
                                 if (chain[cpt] == 0) ImageData[i, j] = new Pixel(255, 255, 255);
@@ -435,7 +437,7 @@ namespace Project_Info
                     upp = !upp;
 
                 }
-            }
+            
         }
 
         
@@ -447,6 +449,11 @@ namespace Project_Info
                 var args = item.Split(';');
                 _alphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
             }
+        }
+
+        public void Mask()
+        {
+            
         }
     }
 }
