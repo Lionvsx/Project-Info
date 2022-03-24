@@ -392,9 +392,11 @@ namespace Project_Info
             
                 for (var i = Width - 1-_quietZoneWidth; i >= 2+_quietZoneWidth; i -=2)
                 {
+                    if (cpt >= chain.Length) break;
                     if (upp)
                     {
-                        for (var j = Height - 1-_quietZoneWidth; j >= 0+_quietZoneWidth; j--)
+                        if (cpt >= chain.Length) break;
+                        for (var j = Height - 1-_quietZoneWidth; j >= _quietZoneWidth; j--)
                         {
                             if (cpt >= chain.Length) break;
                             if (ImageData[i, j] == null)
@@ -406,14 +408,15 @@ namespace Project_Info
 
                             if (ImageData[i - 1, j] == null)
                             {
-                                if (chain[cpt] == 0) ImageData[i, j] = new Pixel(255, 255, 255);
-                                if (chain[cpt] == 1) ImageData[i, j] = new Pixel(0, 0, 0);
+                                if (chain[cpt] == 0) ImageData[i-1, j] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[i-1, j] = new Pixel(0, 0, 0);
                                 cpt++;
                             }
                         }
                     }
                     else
                     {
+                        if (cpt >= chain.Length) break;
                         for (var j = 0+_quietZoneWidth; j <Height-_quietZoneWidth; j++)
                         {
                             if (cpt >= chain.Length) break;
@@ -427,8 +430,8 @@ namespace Project_Info
 
                             if (ImageData[i - 1, j] == null)
                             {
-                                if (chain[cpt] == 0) ImageData[i, j] = new Pixel(255, 255, 255);
-                                if (chain[cpt] == 1) ImageData[i, j] = new Pixel(0, 0, 0);
+                                if (chain[cpt] == 0) ImageData[i-1, j] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[i-1, j] = new Pixel(0, 0, 0);
                                 cpt++;
                             }
                         }
