@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using static System.Math;
 
 
 namespace Project_Info
@@ -143,9 +144,9 @@ namespace Project_Info
             {
                 for (var j = 0; j < im.ImageData.GetLength(1); j++)
                 {
-                    file.Add(Convert.ToByte(Math.Abs(im.ImageData[i,j].Red)));
-                    file.Add(Convert.ToByte(Math.Abs(im.ImageData[i,j].Green)));
-                    file.Add(Convert.ToByte(Math.Abs(im.ImageData[i,j].Blue)));
+                    file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Red)));
+                    file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Green)));
+                    file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Blue)));
                 }
 
                 for (var k = 0; k < im.ImageData.GetLength(1)%4; k++)
@@ -169,7 +170,7 @@ namespace Project_Info
             var enumerable = data.ToList();
             for (var i = 0; i < enumerable.Count; i++)
             {
-                result = (int) (result + enumerable[i] * Math.Pow(256, i));
+                result = (int) (result + enumerable[i] * Pow(256, i));
             }
             return result;
         }
@@ -184,10 +185,39 @@ namespace Project_Info
             var endian = new byte[size];
             for (var i = size - 1; i >= 0; i--)
             {
-                endian[i] = (byte) (data / Math.Pow(256,i ));
-                data -= endian[i] * (int) (Math.Pow(256, i));
+                endian[i] = (byte) (data / Pow(256,i ));
+                data -= endian[i] * (int) (Pow(256, i));
             }
             return endian;
+        }
+
+        public static int[] ConvertBitArrayToByteArray(int[] data)
+        {
+            var result = new int[data.Length / 8];
+            var intByte = 0;
+            for (int i = 0; i < data.Length; i++)
+            {
+
+                intByte += (int) (Pow(2, Abs(i % 8 - 7)) * data[i]);
+                if (i != 0 && (i + 1) % 8 == 0)
+                {
+                    result[i / 8] = intByte;
+                    intByte = 0;
+                }
+            }
+            return result;
+        }
+        
+        public static int[] ConvertByteArrayToBitArray(int[] data)
+        {
+            var result = new int[data.Length * 8];
+            for (int i = 0; i < result.Length; i++)
+            {
+                var division =  (int) (data[i / 8] / Pow(2, Abs(i % 8 - 7)));
+                result[i] = division;
+                data[i / 8] -= (int) (Pow(2, Abs(i % 8 - 7)) * division);
+            }
+            return result;
         }
         public static void DisplayBmp(byte[] myfile)
         {
@@ -455,11 +485,11 @@ namespace Project_Info
 
             for (int i = 0; i < 3; i++)
             {
-                var newLineDouble = Math.Round(columns[i] * Math.Sin(radians) + lines[i] * Math.Cos(radians));
-                var newColDouble = Math.Round(columns[i] * Math.Cos(radians) - lines[i] * Math.Sin(radians));
+                var newLineDouble = Round(columns[i] * Sin(radians) + lines[i] * Cos(radians));
+                var newColDouble = Round(columns[i] * Cos(radians) - lines[i] * Sin(radians));
                 
-                if (newLineDouble < 0) yOffsets.Add((int) Math.Abs(newLineDouble + 1));
-                if (newColDouble < 0) xOffsets.Add((int) Math.Abs(newColDouble + 1));
+                if (newLineDouble < 0) yOffsets.Add((int) Abs(newLineDouble + 1));
+                if (newColDouble < 0) xOffsets.Add((int) Abs(newColDouble + 1));
             }
 
             return new int[] {yOffsets.Max(), xOffsets.Max()};
