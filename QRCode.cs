@@ -390,13 +390,13 @@ namespace Project_Info
             var upp = true;
             var cpt = 0;
             
-                for (var i = Width - 1-_quietZoneWidth; i >= 2+_quietZoneWidth; i -=2)
+                for (var i = Width - 1-_quietZoneWidth; i >_quietZoneWidth; i -=2)
                 {
                     if (cpt >= chain.Length) break;
                     if (upp)
                     {
                         if (cpt >= chain.Length) break;
-                        for (var j = Height - 1-_quietZoneWidth; j >= _quietZoneWidth; j--)
+                        for (var j = Height - 1-_quietZoneWidth; j > _quietZoneWidth; j--)
                         {
                             if (cpt >= chain.Length) break;
                             if (ImageData[j, i] == null)
@@ -417,7 +417,7 @@ namespace Project_Info
                     else
                     {
                         if (cpt >= chain.Length) break;
-                        for (var j = 0+_quietZoneWidth; j <Height-_quietZoneWidth; j++)
+                        for (var j = _quietZoneWidth; j <Height-1-_quietZoneWidth; j++)
                         {
                             if (cpt >= chain.Length) break;
 
