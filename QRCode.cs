@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using ReedSolomonCore;
+using STH1123.ReedSolomon;
 
 namespace Project_Info
 {
@@ -13,11 +15,14 @@ namespace Project_Info
         private readonly int _quietZoneWidth;
         private readonly int _moduleWidth;
         private int[] _mode;
-        private static Dictionary<char, int> _alphanumericTable;
+        private static Dictionary<char, int> _alphanumericTable = new();
         private int _numberDataCodewords;
-        private int _numberECCodewords;
+        private int _numberEcCodewords;
+        private List<int> _wordEncodedData;
+        private int[] _qrCodeData;
 
 
+        
         public QRCode(int version, int quietZoneWidth, int moduleWidth)
         {
             var borderSize = (8 * 2 + (4 * version + 1)) * moduleWidth + 2 * quietZoneWidth;
@@ -47,11 +52,19 @@ namespace Project_Info
             AddDarkModule();
             AddVersionInformation();
             _maskPattern = 4;
-            _correctionLevel = 1;
+            _correctionLevel = 3;
+            SetCodeDataLengthInfo();
             AddFormatInformation();
-
+            EncodeStringData("hello world");
+            GetErrorData();
+            DataEncoding(_qrCodeData);
+            
             Functions.FillImageWhite(ImageData);
         }
+
+        private int TotalCodeWords => _numberDataCodewords + _numberEcCodewords;
+
+        private List<int> ByteEncodedData => Functions.ConvertBitArrayToByteArray(_wordEncodedData.ToArray()).ToList();
 
         private void CreateFinderPatterns(int line, int col)
         {
@@ -82,6 +95,8 @@ namespace Project_Info
                 }
             }
         }
+        
+        
 
         private void CreateTimingPatterns()
         {
@@ -250,7 +265,7 @@ namespace Project_Info
                 _ => 1
             };
 
-            var selectedLine = lines[_version * 4 + lineIndex];
+            var selectedLine = lines[(_version - 1) * 4 + lineIndex];
             
             var infos = selectedLine.Split(";");
             var result = new int[infos.Length-2];
@@ -260,8 +275,23 @@ namespace Project_Info
             }
 
             _numberDataCodewords = result[0];
-            _numberECCodewords = result[1];
+            _numberEcCodewords = result[1];
             
+        }
+
+        
+        private void GetErrorData()
+        {
+            var field = new GenericGF(285, 256, 0);
+            var rse = new ReedSolomonEncoder(field);
+            //Max byte value = 255 (OxFF)
+            
+            var errorFields = _numberEcCodewords;
+            
+            var zerosArray = Enumerable.Repeat(0, errorFields);
+            var byteArray = ByteEncodedData.Concat(zerosArray).ToArray();
+            rse.Encode(byteArray, errorFields);
+            _qrCodeData = Functions.ConvertByteArrayToBitArray(byteArray);
         }
 
         private int[] GetFormatInfo()
@@ -294,7 +324,7 @@ namespace Project_Info
             return Functions.XOR(mask, format.Concat(division).ToArray());
         }
 
-        private int[] EncodeStringData(string word)
+        private void EncodeStringData(string word)
         {
             word = word.ToUpper();
             _mode = new[] {0, 0, 1, 0};
@@ -305,7 +335,7 @@ namespace Project_Info
                 _version < 10 ? 9 : _version < 27 ? 11 : 13);
             result.AddRange(wordLengthBits);
 
-            for (var i = 0; i < word.Length; i++)
+            for (var i = 0; i < word.Length - 1; i+=2)
             {
                 if (i % 2 == 0)
                 {
@@ -314,25 +344,52 @@ namespace Project_Info
 
                     result.AddRange(Functions.IntToDesiredLengthBit(highValue * 45 + lowValue, 11));
                 }
-                if (i == wordLength - 1 && wordLength % 2 == 1)
-                {
-                    _alphanumericTable.TryGetValue(word[i], out var value);
-                    result.AddRange(Functions.IntToDesiredLengthBit(value, 6));
-                }
+
+                if (i != wordLength - 1 || wordLength % 2 != 1) continue;
+                _alphanumericTable.TryGetValue(word[i], out var value);
+                result.AddRange(Functions.IntToDesiredLengthBit(value, 6));
             }
             
             //ADD Terminator
+            var count = 0;
+            while (result.Count < _numberDataCodewords * 8 && count <= 4)
+            {
+                result.Add(0);
+                count++;
+            }
+            //Add more 0 to make multiple of 8
+            result = result.Count % 8 != 0
+                ? Functions.Pad(result.ToArray(), result.Count + (8 - result.Count % 8)).ToList()
+                : result;
+            //Pad bytes if string still too short
+            if (result.Count < _numberDataCodewords * 8)
+            {
+                var byte1 = Functions.IntToDesiredLengthBit(236, 8);
+                var byte2 = Functions.IntToDesiredLengthBit(17, 8);
 
-            return result.Count % 8 != 0
-                ? Functions.Pad(result.ToArray(), result.Count + result.Count % 8)
-                : result.ToArray();
+                var iterations = (_numberDataCodewords * 8 - result.Count);
+                for (int i = 0; i < iterations; i++)
+                {
+                    result.AddRange(i % 2 == 0 ? byte1 : byte2);
+                }
+            }
+
+            _wordEncodedData = result;
+        }
+
+        public void WriteCodeBlock(int line, int col, int dataIndex)
+        {
+            for (var i = dataIndex; i < dataIndex + 8; i++)
+            {
+                
+            }
         }
 
         public void DataEncoding(int[] chain)
         {
             var upp = true;
             var cpt = 0;
-            while (cpt < chain.Length)
+            while (cpt < chain.Length - Height)
             {
                 for (var i = Width - 1; i >= 2; i -=2)
                 {
@@ -388,7 +445,7 @@ namespace Project_Info
             foreach (var item in tableData)
             {
                 var args = item.Split(';');
-                _alphanumericTable.Add(Convert.ToChar(args[1]), Convert.ToInt32(args[0]));
+                _alphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
             }
         }
     }
