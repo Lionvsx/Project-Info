@@ -19,7 +19,7 @@ namespace Project_Info
             QRCode.InitializeAlphaNumericTable();
             //var test = Functions.ReadImage("../../../images/Test.bmp");
             var bjr = Functions.ConvertIntToBinaryArray(1);
-            var QRTest = new QRCode(3, 0, 1);
+            var QRTest = new QRCode(1, 2, 1);
             Functions.WriteImage(QRTest, "../../../images/Test7.bmp");
             Encoding u8 = Encoding.UTF8;
             string a = "HELLO WORLD";

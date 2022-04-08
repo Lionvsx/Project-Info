@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using ReedSolomonCore;
 using STH1123.ReedSolomon;
+using ReedSolomonCore;
 
 namespace Project_Info
 {
@@ -16,6 +17,7 @@ namespace Project_Info
         private readonly int _moduleWidth;
         private int[] _mode;
         private static Dictionary<char, int> _alphanumericTable = new();
+        private bool[,] _functionModules;
         private int _numberDataCodewords;
         private int _numberEcCodewords;
         private List<int> _wordEncodedData;
@@ -27,6 +29,7 @@ namespace Project_Info
         {
             var borderSize = (8 * 2 + (4 * version + 1)) * moduleWidth + 2 * quietZoneWidth;
             ImageData = new Pixel[borderSize, borderSize];
+            _functionModules = new bool[borderSize, borderSize];
             _version = version;
             _quietZoneWidth = quietZoneWidth;
             _moduleWidth = moduleWidth;
@@ -74,8 +77,8 @@ namespace Project_Info
                 for (int j = col; j < 7* _moduleWidth + col; j++)
                 {
                     if (j < col + _moduleWidth || i < line + _moduleWidth) ImageData[i, j] = new Pixel(0, 0, 0);
-                    else if (j > col + 6 * _moduleWidth -1 ||
-                        i > line + 6 * _moduleWidth -1) ImageData[i, j] = new Pixel(0, 0, 0);
+                    else if (j > col + 6 * _moduleWidth - 1 ||
+                             i > line + 6 * _moduleWidth - 1) ImageData[i, j] = new Pixel(0, 0, 0);
 
                     else if (j >= col + 2 * _moduleWidth &&
                         i >= line + 2 * _moduleWidth &&
@@ -84,6 +87,8 @@ namespace Project_Info
                 }
             }
         }
+        
+        
 
         private void CreateSeparators(int line, int col)
         {
@@ -143,7 +148,6 @@ namespace Project_Info
             {
                 if (ImageData[movingLine, fixedCol] != null) movingLine -= 1 * _moduleWidth;
                 if (ImageData[fixedLine, movingCol] != null) movingCol += 1 * _moduleWidth;
-                
                 for (var l = 0; l < _moduleWidth; l++)
                 {
                     for (var c = 0; c < _moduleWidth; c++)
@@ -154,16 +158,19 @@ namespace Project_Info
                             bit == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
                     }
                 }
+                var next = false;
                 if (movingLine-1*_moduleWidth == (4 * _version + 9) * _moduleWidth + _quietZoneWidth)
                 {
-                    movingLine = 9 * _moduleWidth + _quietZoneWidth;
-                    continue;
+                    movingLine = 8 * _moduleWidth + _quietZoneWidth;
+                    next = true;
                 }
-                if (movingCol == 8 * _moduleWidth + _quietZoneWidth)
+                if (movingCol == 7 * _moduleWidth + _quietZoneWidth)
                 {
                     movingCol = ImageData.GetLength(1) - _quietZoneWidth - 8 * _moduleWidth;
-                    continue;
+                    next = true;
                 }
+                if (next) continue;
+
                 movingLine -= 1 * _moduleWidth;
                 movingCol += 1 * _moduleWidth;
             }
@@ -275,7 +282,7 @@ namespace Project_Info
             }
 
             _numberDataCodewords = result[0];
-            _numberEcCodewords = result[1];
+            _numberEcCodewords = result[1] * result[2] + result[1] * result[4];
             
         }
 
@@ -377,16 +384,80 @@ namespace Project_Info
             _wordEncodedData = result;
         }
 
-        public void WriteCodeBlock(int line, int col, int dataIndex)
+        private void WriteBlock(int line, int col, int dataIndex)
         {
-            for (var i = dataIndex; i < dataIndex + 8; i++)
-            {
-                
-            }
+            
         }
 
-        public void DataEncoding(int[] chain)
+        private void WritePixel(int line, int col, int data)
         {
+        }
+
+        private void GetNextPosition(int line, int col, bool upDirection)
+        {
+            
+        }
+        
+        private (int, int) GetNextCursorPosition(int line, int col, bool upDirection, int fixedCol)
+        {
+            if (col == fixedCol && upDirection)
+            {
+                col++;
+            }
+            else if (col != fixedCol && upDirection)
+            {
+                col--;
+                line++;
+            }
+            else if (col == fixedCol && !upDirection)
+            {
+                col++;
+            }
+            else if (col != fixedCol && !upDirection)
+            {
+                col--;
+                line--;
+            }
+            else
+            {
+                throw new Exception("Error in WriteData");
+            }
+
+            return (line, col);
+        }
+
+        private void WriteData(int[] data, int length)
+        {
+            var dataIndex = 0;
+            var count = 0;
+            var upDirection = true;
+            var line = Height - 1 - _quietZoneWidth;
+            var col = Width - 1 - _quietZoneWidth;
+            var fixedCol = col;
+            while (true)
+            {
+                if (ImageData[line, col] != null)
+                {
+                    (line, col) = GetNextCursorPosition(line, col, upDirection, fixedCol);
+                }
+                ImageData[line, col] = data[dataIndex] == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
+                dataIndex++;
+                GetNextCursorPosition(line, col, upDirection, fixedCol);
+                if (dataIndex%8 == 0)
+                {
+                    GetNextPosition(line, col, upDirection);
+                    fixedCol = col;
+                }
+                if (length == count) break;
+            }
+            
+        }
+        private void DataEncoding(int[] chain)
+        {
+            for (int k = 0; k < chain.Length; k++)
+            {
+                Console.Write(chain[k]);
+            } 
             var upp = true;
             var cpt = 0;
             
@@ -401,14 +472,14 @@ namespace Project_Info
                             if (cpt >= chain.Length) break;
                             if (ImageData[j, i] == null)
                             {
-                                if (chain[cpt] == 0) ImageData[j, i] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 0) ImageData[j, i] = new Pixel(100, 100, 100);
                                 if (chain[cpt] == 1) ImageData[j, i] = new Pixel(0, 0, 0);
                                 cpt++;
                             }
 
                             if (ImageData[j, i-1] == null)
                             {
-                                if (chain[cpt] == 0) ImageData[j, i-1] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 0) ImageData[j, i-1] = new Pixel(100, 100, 100);
                                 if (chain[cpt] == 1) ImageData[j, i-1] = new Pixel(0, 0, 0);
                                 cpt++;
                             }
@@ -423,14 +494,14 @@ namespace Project_Info
 
                             if (ImageData[j,i] == null)
                             {
-                                if (chain[cpt] == 0) ImageData[j,i] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 0) ImageData[j,i] = new Pixel(100, 100, 100);
                                 if (chain[cpt] == 1) ImageData[j,i] = new Pixel(0, 0, 0);
                                 cpt++;
                             }
 
                             if (ImageData[j,i-1] == null)
                             {
-                                if (chain[cpt] == 0) ImageData[j,i-1] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 0) ImageData[j,i-1] = new Pixel(100, 100, 100);
                                 if (chain[cpt] == 1) ImageData[j,i-1] = new Pixel(0, 0, 0);
                                 cpt++;
                             }
@@ -440,7 +511,6 @@ namespace Project_Info
                     upp = !upp;
 
                 }
-            
         }
 
         

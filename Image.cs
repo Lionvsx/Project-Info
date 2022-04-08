@@ -18,6 +18,8 @@ namespace Project_Info
 
         public int Height { get; set; }
 
+        //public int Height => ImageData.GetLength(0);
+
         public int Width { get; set; }
 
         public int BitRgb { get; set; }
@@ -136,7 +138,6 @@ namespace Project_Info
             }
             ImageData = newImage;
         }
-
         public void ConvolutionFilter(double[,] kernel, double factor = 1.0)
         {
             var newImageData = new Pixel[ImageData.GetLength(0), ImageData.GetLength(1)];
