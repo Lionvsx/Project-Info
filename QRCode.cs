@@ -375,9 +375,9 @@ namespace Project_Info
                 var byte2 = Functions.IntToDesiredLengthBit(17, 8);
 
                 var iterations = (_numberDataCodewords * 8 - result.Count);
-                for (int i = 0; i < iterations; i++)
+                for (int i = 0; i <= iterations/8; i++)
                 {
-                    result.AddRange(i % 2 == 0 ? byte1 : byte2);
+                    result.AddRange(i % 2 == 0 ? byte2 : byte1);
                 }
             }
 
@@ -460,7 +460,7 @@ namespace Project_Info
             } 
             var upp = true;
             var cpt = 0;
-            
+            var skip = false;
                 for (var i = Width - 1-_quietZoneWidth; i >_quietZoneWidth; i -=2)
                 {
                     if (cpt >= chain.Length) break;
@@ -469,9 +469,16 @@ namespace Project_Info
                         if (cpt >= chain.Length) break;
                         for (var j = Height - 1-_quietZoneWidth; j >= _quietZoneWidth; j--)
                         {
-                            if (cpt >= chain.Length) break;
+                            if (cpt >= chain.Length-1) break;
+                            if (i <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
+                            {
+                                i = i - 1;
+                                skip = true;
+                            }
+                            
                             if (ImageData[j, i] == null)
                             {
+                                
                                 if (chain[cpt] == 0) ImageData[j, i] = new Pixel(100, 100, 100);
                                 if (chain[cpt] == 1) ImageData[j, i] = new Pixel(0, 0, 0);
                                 cpt++;
@@ -479,6 +486,7 @@ namespace Project_Info
 
                             if (ImageData[j, i-1] == null)
                             {
+                                
                                 if (chain[cpt] == 0) ImageData[j, i-1] = new Pixel(100, 100, 100);
                                 if (chain[cpt] == 1) ImageData[j, i-1] = new Pixel(0, 0, 0);
                                 cpt++;
@@ -487,13 +495,20 @@ namespace Project_Info
                     }
                     else
                     {
-                        if (cpt >= chain.Length) break;
+                        if (cpt >= chain.Length-1) break;
                         for (var j = _quietZoneWidth; j <=Height-1-_quietZoneWidth; j++)
                         {
-                            if (cpt >= chain.Length) break;
+                            if (cpt >= chain.Length-1) break;
+                            if (i <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
+                            {
+                                i = i - 1;
+                                skip = true;
+                            }
+                            
 
                             if (ImageData[j,i] == null)
                             {
+                                
                                 if (chain[cpt] == 0) ImageData[j,i] = new Pixel(100, 100, 100);
                                 if (chain[cpt] == 1) ImageData[j,i] = new Pixel(0, 0, 0);
                                 cpt++;
@@ -501,6 +516,7 @@ namespace Project_Info
 
                             if (ImageData[j,i-1] == null)
                             {
+                                
                                 if (chain[cpt] == 0) ImageData[j,i-1] = new Pixel(100, 100, 100);
                                 if (chain[cpt] == 1) ImageData[j,i-1] = new Pixel(0, 0, 0);
                                 cpt++;
