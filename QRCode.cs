@@ -17,7 +17,7 @@ namespace Project_Info
         private readonly int _moduleWidth;
         private int[] _mode;
         private static Dictionary<char, int> _alphanumericTable = new();
-        private bool[,] _functionModules;
+        private bool[,] _notFunctionModules;
         private int _numberDataCodewords;
         private int _numberEcCodewords;
         private List<int> _wordEncodedData;
@@ -29,7 +29,7 @@ namespace Project_Info
         {
             var borderSize = (8 * 2 + (4 * version + 1)) * moduleWidth + 2 * quietZoneWidth;
             ImageData = new Pixel[borderSize, borderSize];
-            _functionModules = new bool[borderSize, borderSize];
+            _notFunctionModules = new bool[borderSize, borderSize];
             _version = version;
             _quietZoneWidth = quietZoneWidth;
             _moduleWidth = moduleWidth;
@@ -55,19 +55,21 @@ namespace Project_Info
             AddDarkModule();
             AddVersionInformation();
             _maskPattern = 4;
-            _correctionLevel = 3;
+            _correctionLevel = 1;
             SetCodeDataLengthInfo();
             AddFormatInformation();
-            EncodeStringData("hello world");
+            EncodeStringData("SMSTO:0781629302:FDP");
             GetErrorData();
             DataEncoding(_qrCodeData);
             
-            Functions.FillImageWhite(ImageData);
+            
+            Functions.FillImageRed(ImageData);
+            AddMask();
         }
 
         private int TotalCodeWords => _numberDataCodewords + _numberEcCodewords;
 
-        private List<int> ByteEncodedData => Functions.ConvertBitArrayToByteArray(_wordEncodedData.ToArray()).ToList();
+        private byte[] ByteEncodedData => Functions.ConvertBitArrayToByteArray(_wordEncodedData.ToArray());
 
         private void CreateFinderPatterns(int line, int col)
         {
@@ -289,22 +291,19 @@ namespace Project_Info
         
         private void GetErrorData()
         {
-            var field = new GenericGF(285, 256, 0);
-            var rse = new ReedSolomonEncoder(field);
-            //Max byte value = 255 (OxFF)
-            
             var errorFields = _numberEcCodewords;
-            
-            var zerosArray = Enumerable.Repeat(0, errorFields);
-            var byteArray = ByteEncodedData.Concat(zerosArray).ToArray();
-            rse.Encode(byteArray, errorFields);
-            _qrCodeData = Functions.ConvertByteArrayToBitArray(byteArray);
+
+            _qrCodeData = _wordEncodedData.ToArray();
+            //var zerosArray = Enumerable.Repeat(0, errorFields);
+            //var byteArray = ByteEncodedData.Concat(zerosArray).ToArray();
+            var byteArray = ReedSolomonAlgorithm.Encode(ByteEncodedData, errorFields, ErrorCorrectionCodeType.QRCode);
+            _qrCodeData = _qrCodeData.Concat(Functions.ConvertByteArrayToBitArray(byteArray)).ToArray();
         }
 
         private int[] GetFormatInfo()
         {
             var maskBinary = Functions.ConvertIntToBinaryArray(_maskPattern);
-            if (maskBinary.Length < 3) maskBinary = Functions.UnShift(maskBinary, 2);
+            if (maskBinary.Length < 3) maskBinary = Functions.UnShift(maskBinary, 3);
             var correctionLevelBinary = Functions.ConvertIntToBinaryArray(_correctionLevel);
             if (correctionLevelBinary.Length < 2) correctionLevelBinary = Functions.UnShift(correctionLevelBinary, 2);
             return correctionLevelBinary.Concat(maskBinary).ToArray();
@@ -342,24 +341,26 @@ namespace Project_Info
                 _version < 10 ? 9 : _version < 27 ? 11 : 13);
             result.AddRange(wordLengthBits);
 
-            for (var i = 0; i < word.Length - 1; i+=2)
+            for (var i = 0; i < word.Length; i+=2)
             {
-                if (i % 2 == 0)
+                if (i % 2 == 0 && i != word.Length - 1)
                 {
                     _alphanumericTable.TryGetValue(word[i], out var highValue);
                     _alphanumericTable.TryGetValue(word[i + 1], out var lowValue);
 
                     result.AddRange(Functions.IntToDesiredLengthBit(highValue * 45 + lowValue, 11));
                 }
-
-                if (i != wordLength - 1 || wordLength % 2 != 1) continue;
-                _alphanumericTable.TryGetValue(word[i], out var value);
-                result.AddRange(Functions.IntToDesiredLengthBit(value, 6));
+                if (i == wordLength - 1 && wordLength % 2 == 1)
+                {
+                    _alphanumericTable.TryGetValue(word[i], out var value);
+                    result.AddRange(Functions.IntToDesiredLengthBit(value, 6));
+                }
             }
+            
             
             //ADD Terminator
             var count = 0;
-            while (result.Count < _numberDataCodewords * 8 && count <= 4)
+            while (result.Count < _numberDataCodewords * 8 && count < 4)
             {
                 result.Add(0);
                 count++;
@@ -375,22 +376,59 @@ namespace Project_Info
                 var byte2 = Functions.IntToDesiredLengthBit(17, 8);
 
                 var iterations = (_numberDataCodewords * 8 - result.Count);
-                for (int i = 0; i <= iterations/8; i++)
+                for (int i = 0; i < iterations/8; i++)
                 {
-                    result.AddRange(i % 2 == 0 ? byte2 : byte1);
+                    result.AddRange(i % 2 == 0 ? byte1 : byte2);
                 }
             }
 
             _wordEncodedData = result;
         }
 
-        private void WriteBlock(int line, int col, int dataIndex)
+        private void AddMask()
         {
-            
-        }
+            //Iterate through each pixel of the ImageData matrix
+            for (int line = 0 + _quietZoneWidth; line < ImageData.GetLength(0); line++)
+            {
+                for (int col = 0 + _quietZoneWidth; col < ImageData.GetLength(1); col++)
+                {
+                    int fLine = line - _quietZoneWidth;
+                    int fCol = col - _quietZoneWidth;
+                    if (_notFunctionModules[line, col])
+                    {
+                        ImageData[line, col] = _maskPattern switch
+                        {
+                            0 => (fLine + fCol) % 2 == 0
+                                ? Functions.InvertPixel(ImageData[line, col])
+                                : ImageData[line, col],
+                            1 => (fLine) % 2 == 0
+                                ? Functions.InvertPixel(ImageData[line, col])
+                                : ImageData[line, col],
+                            2 => (fCol) % 3 == 0
+                                ? Functions.InvertPixel(ImageData[line, col])
+                                : ImageData[line, col],
+                            3 => ((fLine + fCol) % 3 == 0)
+                                ? Functions.InvertPixel(ImageData[line, col])
+                                : ImageData[line, col],
+                            4 =>((fLine / 2 + fCol / 3) % 2 == 0)
+                                ? Functions.InvertPixel(ImageData[line, col])
+                                : ImageData[line, col],
+                            5 => ((fLine * fCol) % 2 + (fLine * fCol) % 3 == 0)
+                                ? Functions.InvertPixel(ImageData[line, col])
+                                : ImageData[line, col],
+                            6 => (((fLine * fCol) % 2 + (fLine * fCol) % 3) % 2 == 0)
+                                ? Functions.InvertPixel(ImageData[line, col])
+                                : ImageData[line, col],
+                            7 => (((fLine * fCol) % 3 + (fLine + fCol) % 2) % 2 == 0)
+                                ? Functions.InvertPixel(ImageData[line, col])
+                                : ImageData[line, col],
+                            _ => throw new ArgumentException("Mask pattern not found")
+                        };
+                    }
+                }
+            }
 
-        private void WritePixel(int line, int col, int data)
-        {
+
         }
 
         private void GetNextPosition(int line, int col, bool upDirection)
@@ -442,7 +480,7 @@ namespace Project_Info
                 }
                 ImageData[line, col] = data[dataIndex] == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
                 dataIndex++;
-                GetNextCursorPosition(line, col, upDirection, fixedCol);
+                (line, col) = GetNextCursorPosition(line, col, upDirection, fixedCol);
                 if (dataIndex%8 == 0)
                 {
                     GetNextPosition(line, col, upDirection);
@@ -457,38 +495,41 @@ namespace Project_Info
             for (int k = 0; k < chain.Length; k++)
             {
                 Console.Write(chain[k]);
+                if ((k +1)%8 == 0) Console.Write(" ");
             } 
             var upp = true;
             var cpt = 0;
             var skip = false;
-                for (var i = Width - 1-_quietZoneWidth; i >_quietZoneWidth; i -=2)
+                for (var col = Width - 1-_quietZoneWidth; col >_quietZoneWidth; col -=2)
                 {
                     if (cpt >= chain.Length) break;
                     if (upp)
                     {
                         if (cpt >= chain.Length) break;
-                        for (var j = Height - 1-_quietZoneWidth; j >= _quietZoneWidth; j--)
+                        for (var line = Height - 1-_quietZoneWidth; line >= _quietZoneWidth; line--)
                         {
                             if (cpt >= chain.Length-1) break;
-                            if (i <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
+                            if (col <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
                             {
-                                i = i - 1;
+                                col -= 1;
                                 skip = true;
                             }
                             
-                            if (ImageData[j, i] == null)
+                            if (ImageData[line, col] == null)
                             {
                                 
-                                if (chain[cpt] == 0) ImageData[j, i] = new Pixel(100, 100, 100);
-                                if (chain[cpt] == 1) ImageData[j, i] = new Pixel(0, 0, 0);
+                                if (chain[cpt] == 0) ImageData[line, col] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[line, col] = new Pixel(0, 0, 0);
+                                _notFunctionModules[line, col] = true;
                                 cpt++;
                             }
 
-                            if (ImageData[j, i-1] == null)
+                            if (ImageData[line, col-1] == null)
                             {
                                 
-                                if (chain[cpt] == 0) ImageData[j, i-1] = new Pixel(100, 100, 100);
-                                if (chain[cpt] == 1) ImageData[j, i-1] = new Pixel(0, 0, 0);
+                                if (chain[cpt] == 0) ImageData[line, col-1] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[line, col-1] = new Pixel(0, 0, 0);
+                                _notFunctionModules[line, col-1] = true;
                                 cpt++;
                             }
                         }
@@ -496,29 +537,31 @@ namespace Project_Info
                     else
                     {
                         if (cpt >= chain.Length-1) break;
-                        for (var j = _quietZoneWidth; j <=Height-1-_quietZoneWidth; j++)
+                        for (var line = _quietZoneWidth; line <=Height-1-_quietZoneWidth; line++)
                         {
                             if (cpt >= chain.Length-1) break;
-                            if (i <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
+                            if (col <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
                             {
-                                i = i - 1;
+                                col -= 1;
                                 skip = true;
                             }
                             
 
-                            if (ImageData[j,i] == null)
+                            if (ImageData[line,col] == null)
                             {
                                 
-                                if (chain[cpt] == 0) ImageData[j,i] = new Pixel(100, 100, 100);
-                                if (chain[cpt] == 1) ImageData[j,i] = new Pixel(0, 0, 0);
+                                if (chain[cpt] == 0) ImageData[line,col] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[line,col] = new Pixel(0, 0, 0);
+                                _notFunctionModules[line, col] = true;
                                 cpt++;
                             }
 
-                            if (ImageData[j,i-1] == null)
+                            if (ImageData[line,col-1] == null)
                             {
                                 
-                                if (chain[cpt] == 0) ImageData[j,i-1] = new Pixel(100, 100, 100);
-                                if (chain[cpt] == 1) ImageData[j,i-1] = new Pixel(0, 0, 0);
+                                if (chain[cpt] == 0) ImageData[line,col-1] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 1) ImageData[line,col-1] = new Pixel(0, 0, 0);
+                                _notFunctionModules[line, col-1] = true;
                                 cpt++;
                             }
                         }

@@ -18,8 +18,8 @@ namespace Project_Info
         public Pixel()
         {
             _red = 0;
-            this._blue = 0;
-            this._green = 0;
+            _blue = 0;
+            _green = 0;
         }
 
         public Pixel(Pixel pixel)
@@ -56,5 +56,7 @@ namespace Project_Info
                 return hex;
             }
         }
+
+        public bool IsBlack => _red == 0 && _green == 0 && _blue == 0;
     }
 }

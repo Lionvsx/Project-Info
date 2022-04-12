@@ -19,21 +19,12 @@ namespace Project_Info
             QRCode.InitializeAlphaNumericTable();
             //var test = Functions.ReadImage("../../../images/Test.bmp");
             var bjr = Functions.ConvertIntToBinaryArray(1);
-            var QRTest = new QRCode(2, 2, 1);
+            var QRTest = new QRCode(2, 0, 1);
             Functions.WriteImage(QRTest, "../../../images/Test7.bmp");
-            Encoding u8 = Encoding.UTF8;
-            string a = "HELLO WORLD";
-            byte[] bytesa = u8.GetBytes(a);
+            
             
 
 
-            byte[] result = ReedSolomonAlgorithm.Encode(bytesa, 7, ErrorCorrectionCodeType.QRCode);
-
-            foreach (byte val in result)
-            {
-                Console.Write(val + " ");
-                var inttab = Functions.ConvertIntToBinaryArray(val);
-            }
             
         }
     }
