@@ -249,6 +249,7 @@ namespace Project_Info
             return result;
         }
 
+        // ReSharper disable once InconsistentNaming
         private int[] GetQRVersion()
         {
             var lines = Functions.ReadFile("../../../qrVersion.txt").ToArray();
@@ -430,66 +431,6 @@ namespace Project_Info
 
 
         }
-
-        private void GetNextPosition(int line, int col, bool upDirection)
-        {
-            
-        }
-        
-        private (int, int) GetNextCursorPosition(int line, int col, bool upDirection, int fixedCol)
-        {
-            if (col == fixedCol && upDirection)
-            {
-                col++;
-            }
-            else if (col != fixedCol && upDirection)
-            {
-                col--;
-                line++;
-            }
-            else if (col == fixedCol && !upDirection)
-            {
-                col++;
-            }
-            else if (col != fixedCol && !upDirection)
-            {
-                col--;
-                line--;
-            }
-            else
-            {
-                throw new Exception("Error in WriteData");
-            }
-
-            return (line, col);
-        }
-
-        private void WriteData(int[] data, int length)
-        {
-            var dataIndex = 0;
-            var count = 0;
-            var upDirection = true;
-            var line = Height - 1 - _quietZoneWidth;
-            var col = Width - 1 - _quietZoneWidth;
-            var fixedCol = col;
-            while (true)
-            {
-                if (ImageData[line, col] != null)
-                {
-                    (line, col) = GetNextCursorPosition(line, col, upDirection, fixedCol);
-                }
-                ImageData[line, col] = data[dataIndex] == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
-                dataIndex++;
-                (line, col) = GetNextCursorPosition(line, col, upDirection, fixedCol);
-                if (dataIndex%8 == 0)
-                {
-                    GetNextPosition(line, col, upDirection);
-                    fixedCol = col;
-                }
-                if (length == count) break;
-            }
-            
-        }
         private void DataEncoding(int[] chain)
         {
             for (int k = 0; k < chain.Length; k++)
@@ -581,11 +522,6 @@ namespace Project_Info
                 var args = item.Split(';');
                 _alphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
             }
-        }
-
-        public void Mask()
-        {
-            
         }
     }
 }

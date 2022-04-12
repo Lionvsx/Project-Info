@@ -4,59 +4,43 @@ namespace Project_Info
 {
     public class Pixel
     {
-        private int _red;
-        private int _blue;
-        private int _green;
-
         public Pixel(int red, int blue, int green)
         {
-            this._red = red;
-            this._blue = blue;
-            this._green = green;
+            this.Red = red;
+            this.Blue = blue;
+            this.Green = green;
         }
 
         public Pixel()
         {
-            _red = 0;
-            _blue = 0;
-            _green = 0;
+            Red = 0;
+            Blue = 0;
+            Green = 0;
         }
 
         public Pixel(Pixel pixel)
         {
-            _red = pixel.Red;
-            _green = pixel.Green;
-            _blue = pixel.Blue;
+            Red = pixel.Red;
+            Green = pixel.Green;
+            Blue = pixel.Blue;
         }
 
-        public int Red
-        {
-            get => _red;
-            set => _red = value;
-        }
+        public int Red { get; set; }
 
-        public int Blue
-        {
-            get => _blue;
-            set => _blue = value;
-        }
+        public int Blue { get; set; }
 
-        public int Green
-        {
-            get => _green;
-            set => _green = value;
-        }
+        public int Green { get; set; }
 
         public string HexString
         {
             get
             {
-                Color myColor = Color.FromArgb(_red, _green, _blue);
+                Color myColor = Color.FromArgb(Red, Green, Blue);
                 string hex = myColor.R.ToString("X2") + myColor.G.ToString("X2") + myColor.B.ToString("X2");
                 return hex;
             }
         }
 
-        public bool IsBlack => _red == 0 && _green == 0 && _blue == 0;
+        public bool IsBlack => Red == 0 && Green == 0 && Blue == 0;
     }
 }
