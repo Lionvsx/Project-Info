@@ -22,6 +22,7 @@ namespace Project_Info
         private int _numberEcCodewords;
         private List<int> _wordEncodedData;
         private int[] _qrCodeData;
+        
 
 
         
@@ -382,6 +383,12 @@ namespace Project_Info
                     result.AddRange(i % 2 == 0 ? byte1 : byte2);
                 }
             }
+            var tableData = Functions.ReadFile("../../../qrRemainderBits.txt").ToArray();
+            var remainder = Convert.ToInt32(tableData[(_version - 1) * 3]);
+            for (var i = 0; i < remainder; i++)
+            {
+                result.Add(0);
+            }
 
             _wordEncodedData = result;
         }
@@ -443,10 +450,10 @@ namespace Project_Info
             var skip = false;
                 for (var col = Width - 1-_quietZoneWidth; col >_quietZoneWidth; col -=2)
                 {
-                    if (cpt >= chain.Length) break;
+                    if (cpt >= chain.Length-1) break;
                     if (upp)
                     {
-                        if (cpt >= chain.Length) break;
+                        if (cpt >= chain.Length-1) break;
                         for (var line = Height - 1-_quietZoneWidth; line >= _quietZoneWidth; line--)
                         {
                             if (cpt >= chain.Length-1) break;
@@ -486,13 +493,12 @@ namespace Project_Info
                                 col -= 1;
                                 skip = true;
                             }
-                            
-
                             if (ImageData[line,col] == null)
                             {
-                                
                                 if (chain[cpt] == 0) ImageData[line,col] = new Pixel(255, 255, 255);
+                                
                                 if (chain[cpt] == 1) ImageData[line,col] = new Pixel(0, 0, 0);
+                              
                                 _notFunctionModules[line, col] = true;
                                 cpt++;
                             }
@@ -501,7 +507,9 @@ namespace Project_Info
                             {
                                 
                                 if (chain[cpt] == 0) ImageData[line,col-1] = new Pixel(255, 255, 255);
+                               
                                 if (chain[cpt] == 1) ImageData[line,col-1] = new Pixel(0, 0, 0);
+                                
                                 _notFunctionModules[line, col-1] = true;
                                 cpt++;
                             }
@@ -511,6 +519,7 @@ namespace Project_Info
                     upp = !upp;
 
                 }
+                Console.WriteLine(" ");
         }
 
         
@@ -523,5 +532,6 @@ namespace Project_Info
                 _alphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
             }
         }
+       
     }
 }
