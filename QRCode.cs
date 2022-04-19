@@ -55,7 +55,7 @@ namespace Project_Info
             CreateTimingPatterns();
             AddDarkModule();
             AddVersionInformation();
-            _maskPattern = 2;
+            _maskPattern = 4;
             _correctionLevel = 1;
             SetCodeDataLengthInfo();
             AddFormatInformation();
@@ -402,9 +402,9 @@ namespace Project_Info
         private void AddMask()
         {
             //Iterate through each pixel of the ImageData matrix
-            for (int line = 0 + _quietZoneWidth; line < ImageData.GetLength(0); line+= _moduleWidth)
+            for (int line = 0 + _quietZoneWidth; line < ImageData.GetLength(0); line++)
             {
-                for (int col = 0 + _quietZoneWidth; col < ImageData.GetLength(1); col+= _moduleWidth)
+                for (int col = 0 + _quietZoneWidth; col < ImageData.GetLength(1); col++)
                 {
                     int fLine = line/_moduleWidth - _quietZoneWidth;
                     int fCol = col/_moduleWidth - _quietZoneWidth;
