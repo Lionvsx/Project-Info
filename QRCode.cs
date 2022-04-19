@@ -299,7 +299,17 @@ namespace Project_Info
             //var zerosArray = Enumerable.Repeat(0, errorFields);
             //var byteArray = ByteEncodedData.Concat(zerosArray).ToArray();
             var byteArray = ReedSolomonAlgorithm.Encode(ByteEncodedData, errorFields, ErrorCorrectionCodeType.QRCode);
-            _qrCodeData = _qrCodeData.Concat(Functions.ConvertByteArrayToBitArray(byteArray)).ToArray();
+            // Add remainder bits if needed
+            var lines = Functions.ReadFile("../../../qrRemainderBits.txt").ToArray();
+            var selectedLine = lines[_version];
+            var coordinates = selectedLine.Split(";");
+            var remainder = Convert.ToInt32(coordinates[1]);
+            var bitArray = Functions.ConvertByteArrayToBitArray(byteArray).ToList();
+            for (var i = 0; i < remainder; i++)
+            {
+                bitArray.Add((int)(0));
+            }
+            _qrCodeData = _qrCodeData.Concat(bitArray).ToArray();
         }
 
         private int[] GetFormatInfo()
@@ -383,12 +393,7 @@ namespace Project_Info
                     result.AddRange(i % 2 == 0 ? byte1 : byte2);
                 }
             }
-            var tableData = Functions.ReadFile("../../../qrRemainderBits.txt").ToArray();
-            var remainder = Convert.ToInt32(tableData[(_version - 1) * 3]);
-            for (var i = 0; i < remainder; i++)
-            {
-                result.Add(0);
-            }
+            
 
             _wordEncodedData = result;
         }
