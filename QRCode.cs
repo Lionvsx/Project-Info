@@ -64,7 +64,7 @@ namespace Project_Info
             DataEncoding(_qrCodeData);
             
             
-            Functions.FillImageWhite(ImageData);
+            Functions.FillImageRed(ImageData);
             AddMask();
         }
 
@@ -138,6 +138,7 @@ namespace Project_Info
                 }
             }
         }
+
         public void AddFormatInformation()
         {
             var formatBinary = EncodeFormatInfo(GetFormatInfo());
@@ -402,9 +403,9 @@ namespace Project_Info
         private void AddMask()
         {
             //Iterate through each pixel of the ImageData matrix
-            for (int line = 0 + _quietZoneWidth; line < ImageData.GetLength(0); line++)
+            for (int line = 0 + _quietZoneWidth; line < ImageData.GetLength(0); line+=_moduleWidth)
             {
-                for (int col = 0 + _quietZoneWidth; col < ImageData.GetLength(1); col++)
+                for (int col = 0 + _quietZoneWidth; col < ImageData.GetLength(1); col+=_moduleWidth)
                 {
                     int fLine = (line - _quietZoneWidth)/_moduleWidth;
                     int fCol = (col - _quietZoneWidth)/_moduleWidth;
@@ -447,14 +448,15 @@ namespace Project_Info
                     }
                 }
             }
+
+
         }
-        
         private void DataEncoding(int[] chain)
         {
             for (int k = 0; k < chain.Length; k++)
             {
-                //Console.Write(chain[k]);
-                //if ((k +1)%8 == 0) Console.Write(" ");
+                Console.Write(chain[k]);
+                if ((k +1)%8 == 0) Console.Write(" ");
             } 
             var upp = true;
             var cpt = 0;
@@ -470,7 +472,7 @@ namespace Project_Info
                             if (cpt >= chain.Length-1) break;
                             if (col <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
                             {
-                                col -= 1;
+                                col -= _moduleWidth;
                                 skip = true;
                             }
                             
@@ -541,7 +543,7 @@ namespace Project_Info
                             if (cpt >= chain.Length-1) break;
                             if (col <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
                             {
-                                col -= 1;
+                                col -= _moduleWidth;
                                 skip = true;
                             }
                             if (ImageData[line,col] == null)
@@ -552,7 +554,7 @@ namespace Project_Info
                                     {
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
-                                            ImageData[line-i, col-j] = new Pixel(255, 255, 255);
+                                            ImageData[line+i, col-j] = new Pixel(255, 255, 255);
                                         }
                                     }
                                     
@@ -564,7 +566,7 @@ namespace Project_Info
                                     {
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
-                                            ImageData[line-i, col-j] = new Pixel(0, 0, 0);
+                                            ImageData[line+i, col-j] = new Pixel(0, 0, 0);
                                         }
                                     }
                                 }                              
@@ -581,7 +583,7 @@ namespace Project_Info
                                     {
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
-                                            ImageData[line-i, col-_moduleWidth-j] = new Pixel(255, 255, 255);
+                                            ImageData[line+i, col-_moduleWidth-j] = new Pixel(255, 255, 255);
                                         }
                                     }
                                     
@@ -592,7 +594,7 @@ namespace Project_Info
                                     {
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
-                                            ImageData[line-i, col-_moduleWidth-j] = new Pixel(0, 0, 0);
+                                            ImageData[line+i, col-_moduleWidth-j] = new Pixel(0, 0, 0);
                                         }
                                     }
                                     
