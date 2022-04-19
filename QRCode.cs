@@ -406,8 +406,8 @@ namespace Project_Info
             {
                 for (int col = 0 + _quietZoneWidth; col < ImageData.GetLength(1); col++)
                 {
-                    int fLine = line/_moduleWidth - _quietZoneWidth;
-                    int fCol = col/_moduleWidth - _quietZoneWidth;
+                    int fLine = (line - _quietZoneWidth)/_moduleWidth;
+                    int fCol = (col - _quietZoneWidth)/_moduleWidth;
                     if (_notFunctionModules[line, col])
                     {
                         for (var i = line; i < line + _moduleWidth; i++)
