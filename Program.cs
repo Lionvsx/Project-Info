@@ -7,7 +7,7 @@
             QRCode.InitializeAlphaNumericTable();
             //var test = Functions.ReadImage("../../../images/Test.bmp");
             var bjr = Functions.ConvertIntToBinaryArray(1);
-            var QRTest = new QRCode(2, 5, 1);
+            var QRTest = new QRCode(2, 5, 2);
             Functions.WriteImage(QRTest, "../../../images/Test7.bmp");
         }
     }

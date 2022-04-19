@@ -453,13 +453,13 @@ namespace Project_Info
             var upp = true;
             var cpt = 0;
             var skip = false;
-                for (var col = Width - 1-_quietZoneWidth; col >_quietZoneWidth; col -=2)
+                for (var col = Width - 1-_quietZoneWidth; col >_quietZoneWidth; col -=2*_moduleWidth)
                 {
                     if (cpt >= chain.Length-1) break;
                     if (upp)
                     {
                         if (cpt >= chain.Length-1) break;
-                        for (var line = Height - 1-_quietZoneWidth; line >= _quietZoneWidth; line--)
+                        for (var line = Height - 1-_quietZoneWidth; line >= _quietZoneWidth; line-=_moduleWidth)
                         {
                             if (cpt >= chain.Length-1) break;
                             if (col <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
@@ -470,19 +470,59 @@ namespace Project_Info
                             
                             if (ImageData[line, col] == null)
                             {
-                                
-                                if (chain[cpt] == 0) ImageData[line, col] = new Pixel(255, 255, 255);
-                                if (chain[cpt] == 1) ImageData[line, col] = new Pixel(0, 0, 0);
+
+                                if (chain[cpt] == 0)
+                                {
+                                    for (var i = 0; i < _moduleWidth; i++)
+                                    {
+                                        for (var j = 0; j < _moduleWidth; j++)
+                                        {
+                                            ImageData[line-i, col-j] = new Pixel(255, 255, 255);
+                                        }
+                                    }
+                                    
+                                }
+
+                                if (chain[cpt] == 1)
+                                {
+                                    for (var i = 0; i < _moduleWidth; i++)
+                                    {
+                                        for (var j = 0; j < _moduleWidth; j++)
+                                        {
+                                            ImageData[line-i, col-j] = new Pixel(0, 0, 0);
+                                        }
+                                    }
+                                }
                                 _notFunctionModules[line, col] = true;
                                 cpt++;
                             }
 
-                            if (ImageData[line, col-1] == null)
+                            if (ImageData[line, col-_moduleWidth] == null)
                             {
                                 
-                                if (chain[cpt] == 0) ImageData[line, col-1] = new Pixel(255, 255, 255);
-                                if (chain[cpt] == 1) ImageData[line, col-1] = new Pixel(0, 0, 0);
-                                _notFunctionModules[line, col-1] = true;
+                                if (chain[cpt] == 0)
+                                {
+                                    for (var i = 0; i < _moduleWidth; i++)
+                                    {
+                                        for (var j = 0; j < _moduleWidth; j++)
+                                        {
+                                            ImageData[line-i, col-_moduleWidth-j] = new Pixel(255, 255, 255);
+                                        }
+                                    }
+                                    
+                                }
+                                if (chain[cpt] == 1)
+                                {
+                                    for (var i = 0; i < _moduleWidth; i++)
+                                    {
+                                        for (var j = 0; j < _moduleWidth; j++)
+                                        {
+                                            ImageData[line-i, col-_moduleWidth-j] = new Pixel(0, 0, 0);
+                                        }
+                                    }
+                                    
+                                }
+                                _notFunctionModules[line, col-_moduleWidth] = true;
                                 cpt++;
                             }
                         }
@@ -490,7 +530,7 @@ namespace Project_Info
                     else
                     {
                         if (cpt >= chain.Length-1) break;
-                        for (var line = _quietZoneWidth; line <=Height-1-_quietZoneWidth; line++)
+                        for (var line = _quietZoneWidth; line <=Height-1-_quietZoneWidth; line+= _moduleWidth)
                         {
                             if (cpt >= chain.Length-1) break;
                             if (col <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
@@ -500,22 +540,58 @@ namespace Project_Info
                             }
                             if (ImageData[line,col] == null)
                             {
-                                if (chain[cpt] == 0) ImageData[line,col] = new Pixel(255, 255, 255);
+                                if (chain[cpt] == 0)
+                                {
+                                    for (var i = 0; i < _moduleWidth; i++)
+                                    {
+                                        for (var j = 0; j < _moduleWidth; j++)
+                                        {
+                                            ImageData[line-i, col-j] = new Pixel(255, 255, 255);
+                                        }
+                                    }
+                                    
+                                }
                                 
-                                if (chain[cpt] == 1) ImageData[line,col] = new Pixel(0, 0, 0);
-                              
+                                if (chain[cpt] == 1)
+                                {
+                                    for (var i = 0; i < _moduleWidth; i++)
+                                    {
+                                        for (var j = 0; j < _moduleWidth; j++)
+                                        {
+                                            ImageData[line-i, col-j] = new Pixel(0, 0, 0);
+                                        }
+                                    }
+                                }                              
                                 _notFunctionModules[line, col] = true;
                                 cpt++;
                             }
 
-                            if (ImageData[line,col-1] == null)
+                            if (ImageData[line,col-_moduleWidth] == null)
                             {
                                 
-                                if (chain[cpt] == 0) ImageData[line,col-1] = new Pixel(255, 255, 255);
-                               
-                                if (chain[cpt] == 1) ImageData[line,col-1] = new Pixel(0, 0, 0);
-                                
-                                _notFunctionModules[line, col-1] = true;
+                                if (chain[cpt] == 0)
+                                {
+                                    for (var i = 0; i < _moduleWidth; i++)
+                                    {
+                                        for (var j = 0; j < _moduleWidth; j++)
+                                        {
+                                            ImageData[line-i, col-_moduleWidth-j] = new Pixel(255, 255, 255);
+                                        }
+                                    }
+                                    
+                                }                               
+                                if (chain[cpt] == 1)
+                                {
+                                    for (var i = 0; i < _moduleWidth; i++)
+                                    {
+                                        for (var j = 0; j < _moduleWidth; j++)
+                                        {
+                                            ImageData[line-i, col-_moduleWidth-j] = new Pixel(0, 0, 0);
+                                        }
+                                    }
+                                    
+                                }                                
+                                _notFunctionModules[line, col-_moduleWidth] = true;
                                 cpt++;
                             }
                         }
