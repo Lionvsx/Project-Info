@@ -410,34 +410,40 @@ namespace Project_Info
                     int fCol = col/_moduleWidth - _quietZoneWidth;
                     if (_notFunctionModules[line, col])
                     {
-                        ImageData[line, col] = _maskPattern switch
+                        for (var i = line; i < line + _moduleWidth; i++)
                         {
-                            0 => (fLine + fCol) % 2 == 0
-                                ? Functions.InvertPixel(ImageData[line, col])
-                                : ImageData[line, col],
-                            1 => (fLine) % 2 == 0
-                                ? Functions.InvertPixel(ImageData[line, col])
-                                : ImageData[line, col],
-                            2 => (fCol) % 3 == 0
-                                ? Functions.InvertPixel(ImageData[line, col])
-                                : ImageData[line, col],
-                            3 => ((fLine + fCol) % 3 == 0)
-                                ? Functions.InvertPixel(ImageData[line, col])
-                                : ImageData[line, col],
-                            4 =>((fLine / 2 + fCol / 3) % 2 == 0)
-                                ? Functions.InvertPixel(ImageData[line, col])
-                                : ImageData[line, col],
-                            5 => ((fLine * fCol) % 2 + (fLine * fCol) % 3 == 0)
-                                ? Functions.InvertPixel(ImageData[line, col])
-                                : ImageData[line, col],
-                            6 => (((fLine * fCol) % 2 + (fLine * fCol) % 3) % 2 == 0)
-                                ? Functions.InvertPixel(ImageData[line, col])
-                                : ImageData[line, col],
-                            7 => (((fLine * fCol) % 3 + (fLine + fCol) % 2) % 2 == 0)
-                                ? Functions.InvertPixel(ImageData[line, col])
-                                : ImageData[line, col],
-                            _ => throw new ArgumentException("Mask pattern not found")
-                        };
+                            for (var j = col; j < col + _moduleWidth; j++)
+                            {
+                                ImageData[i, j] = _maskPattern switch
+                                {
+                                    0 => (fLine + fCol) % 2 == 0
+                                        ? Functions.InvertPixel(ImageData[i, j])
+                                        : ImageData[i, j],
+                                    1 => (fLine) % 2 == 0
+                                        ? Functions.InvertPixel(ImageData[i, j])
+                                        : ImageData[i, j],
+                                    2 => (fCol) % 3 == 0
+                                        ? Functions.InvertPixel(ImageData[i, j])
+                                        : ImageData[i, j],
+                                    3 => ((fLine + fCol) % 3 == 0)
+                                        ? Functions.InvertPixel(ImageData[i, j])
+                                        : ImageData[i, j],
+                                    4 =>((fLine / 2 + fCol / 3) % 2 == 0)
+                                        ? Functions.InvertPixel(ImageData[i, j])
+                                        : ImageData[i, j],
+                                    5 => ((fLine * fCol) % 2 + (fLine * fCol) % 3 == 0)
+                                        ? Functions.InvertPixel(ImageData[i, j])
+                                        : ImageData[i, j],
+                                    6 => (((fLine * fCol) % 2 + (fLine * fCol) % 3) % 2 == 0)
+                                        ? Functions.InvertPixel(ImageData[i, j])
+                                        : ImageData[i, j],
+                                    7 => (((fLine * fCol) % 3 + (fLine + fCol) % 2) % 2 == 0)
+                                        ? Functions.InvertPixel(ImageData[i, j])
+                                        : ImageData[i, j],
+                                    _ => throw new ArgumentException("Mask pattern not found")
+                                };
+                            }
+                        }
                     }
                 }
             }
