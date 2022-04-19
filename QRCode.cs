@@ -486,6 +486,7 @@ namespace Project_Info
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
                                             ImageData[line-i, col-j] = new Pixel(255, 255, 255);
+                                            _notFunctionModules[line-i, col-j] = true;
                                         }
                                     }
                                     
@@ -498,10 +499,11 @@ namespace Project_Info
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
                                             ImageData[line-i, col-j] = new Pixel(0, 0, 0);
+                                            _notFunctionModules[line-i, col-j] = true;
                                         }
                                     }
                                 }
-                                _notFunctionModules[line, col] = true;
+                                
                                 cpt++;
                             }
 
@@ -515,6 +517,7 @@ namespace Project_Info
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
                                             ImageData[line-i, col-_moduleWidth-j] = new Pixel(255, 255, 255);
+                                            _notFunctionModules[line-i, col-_moduleWidth-j] = true;
                                         }
                                     }
                                     
@@ -526,11 +529,12 @@ namespace Project_Info
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
                                             ImageData[line-i, col-_moduleWidth-j] = new Pixel(0, 0, 0);
+                                            _notFunctionModules[line-i, col-j-_moduleWidth] = true;
                                         }
                                     }
                                     
                                 }
-                                _notFunctionModules[line, col-_moduleWidth] = true;
+                                
                                 cpt++;
                             }
                         }
@@ -555,11 +559,10 @@ namespace Project_Info
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
                                             ImageData[line+i, col-j] = new Pixel(255, 255, 255);
+                                            _notFunctionModules[line+i, col-j] = true;
                                         }
                                     }
-                                    
                                 }
-                                
                                 if (chain[cpt] == 1)
                                 {
                                     for (var i = 0; i < _moduleWidth; i++)
@@ -567,10 +570,10 @@ namespace Project_Info
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
                                             ImageData[line+i, col-j] = new Pixel(0, 0, 0);
+                                            _notFunctionModules[line+i, col-j] = true;
                                         }
                                     }
-                                }                              
-                                _notFunctionModules[line, col] = true;
+                                }
                                 cpt++;
                             }
 
@@ -584,6 +587,7 @@ namespace Project_Info
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
                                             ImageData[line+i, col-_moduleWidth-j] = new Pixel(255, 255, 255);
+                                            _notFunctionModules[line+i, col-_moduleWidth-j] = true;
                                         }
                                     }
                                     
@@ -595,11 +599,12 @@ namespace Project_Info
                                         for (var j = 0; j < _moduleWidth; j++)
                                         {
                                             ImageData[line+i, col-_moduleWidth-j] = new Pixel(0, 0, 0);
+                                            _notFunctionModules[line+i, col-_moduleWidth-j] = true;
                                         }
                                     }
                                     
                                 }                                
-                                _notFunctionModules[line, col-_moduleWidth] = true;
+                                
                                 cpt++;
                             }
                         }
@@ -610,8 +615,6 @@ namespace Project_Info
                 }
                 Console.WriteLine(" ");
         }
-
-        
         public static void InitializeAlphaNumericTable()
         {
             var tableData = Functions.ReadFile("../../../alphanumericTable.txt");
