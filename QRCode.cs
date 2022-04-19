@@ -55,7 +55,7 @@ namespace Project_Info
             CreateTimingPatterns();
             AddDarkModule();
             AddVersionInformation();
-            _maskPattern = 4;
+            _maskPattern = 2;
             _correctionLevel = 1;
             SetCodeDataLengthInfo();
             AddFormatInformation();
@@ -64,7 +64,7 @@ namespace Project_Info
             DataEncoding(_qrCodeData);
             
             
-            Functions.FillImageRed(ImageData);
+            Functions.FillImageWhite(ImageData);
             AddMask();
         }
 
@@ -138,7 +138,6 @@ namespace Project_Info
                 }
             }
         }
-
         public void AddFormatInformation()
         {
             var formatBinary = EncodeFormatInfo(GetFormatInfo());
@@ -147,6 +146,7 @@ namespace Project_Info
 
             var movingCol = 0 + _quietZoneWidth;
             var movingLine = ImageData.GetLength(0) -1 - _quietZoneWidth - (_moduleWidth - 1);
+            
             foreach (var bit in formatBinary)
             {
                 if (ImageData[movingLine, fixedCol] != null) movingLine -= 1 * _moduleWidth;
@@ -155,6 +155,7 @@ namespace Project_Info
                 {
                     for (var c = 0; c < _moduleWidth; c++)
                     {
+                        Console.Write(bit);
                         ImageData[fixedLine + l, movingCol + c] =
                             bit == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
                         ImageData[movingLine + l, fixedCol + c] =
@@ -307,7 +308,7 @@ namespace Project_Info
             var bitArray = Functions.ConvertByteArrayToBitArray(byteArray).ToList();
             for (var i = 0; i < remainder; i++)
             {
-                bitArray.Add((int)(0));
+                bitArray.Add(0);
             }
             _qrCodeData = _qrCodeData.Concat(bitArray).ToArray();
         }
@@ -401,12 +402,12 @@ namespace Project_Info
         private void AddMask()
         {
             //Iterate through each pixel of the ImageData matrix
-            for (int line = 0 + _quietZoneWidth; line < ImageData.GetLength(0); line++)
+            for (int line = 0 + _quietZoneWidth; line < ImageData.GetLength(0); line+= _moduleWidth)
             {
-                for (int col = 0 + _quietZoneWidth; col < ImageData.GetLength(1); col++)
+                for (int col = 0 + _quietZoneWidth; col < ImageData.GetLength(1); col+= _moduleWidth)
                 {
-                    int fLine = line - _quietZoneWidth;
-                    int fCol = col - _quietZoneWidth;
+                    int fLine = line/_moduleWidth - _quietZoneWidth;
+                    int fCol = col/_moduleWidth - _quietZoneWidth;
                     if (_notFunctionModules[line, col])
                     {
                         ImageData[line, col] = _maskPattern switch
@@ -440,15 +441,14 @@ namespace Project_Info
                     }
                 }
             }
-
-
         }
+        
         private void DataEncoding(int[] chain)
         {
             for (int k = 0; k < chain.Length; k++)
             {
-                Console.Write(chain[k]);
-                if ((k +1)%8 == 0) Console.Write(" ");
+                //Console.Write(chain[k]);
+                //if ((k +1)%8 == 0) Console.Write(" ");
             } 
             var upp = true;
             var cpt = 0;
