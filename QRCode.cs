@@ -55,7 +55,7 @@ namespace Project_Info
             CreateTimingPatterns();
             AddDarkModule();
             AddVersionInformation();
-            _maskPattern = 4;
+            _maskPattern = 2;
             _correctionLevel = 1;
             SetCodeDataLengthInfo();
             AddFormatInformation();
@@ -141,7 +141,7 @@ namespace Project_Info
 
         public void AddFormatInformation()
         {
-            var formatBinary = EncodeFormatInfo(GetFormatInfo());
+            var formatBinary = GetFormatInfo();
             var fixedLine = 8 * _moduleWidth + _quietZoneWidth;
             var fixedCol = 8 * _moduleWidth + _quietZoneWidth;
 
@@ -291,6 +291,7 @@ namespace Project_Info
             _numberEcCodewords = result[1] * result[2] + result[1] * result[4];
             
         }
+        
 
         
         private void GetErrorData()
@@ -314,13 +315,32 @@ namespace Project_Info
             _qrCodeData = _qrCodeData.Concat(bitArray).ToArray();
         }
 
-        private int[] GetFormatInfo()
+        private int[] GetFormatInfoOld()
         {
             var maskBinary = Functions.ConvertIntToBinaryArray(_maskPattern);
             if (maskBinary.Length < 3) maskBinary = Functions.UnShift(maskBinary, 3);
             var correctionLevelBinary = Functions.ConvertIntToBinaryArray(_correctionLevel);
             if (correctionLevelBinary.Length < 2) correctionLevelBinary = Functions.UnShift(correctionLevelBinary, 2);
             return correctionLevelBinary.Concat(maskBinary).ToArray();
+        }
+
+        private int[] GetFormatInfo()
+        {
+            var lines = Functions.ReadFile("../../../qrFormat.txt").ToArray();
+            var lineIndex = _correctionLevel switch
+            {
+                1 => 0*8,
+                3 => 2*8,
+                2 => 3*8,
+                4 => 1*8,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            var selectedLine = lines[lineIndex + _maskPattern];
+            
+            var infos = selectedLine.Split(";");
+            return infos[2].Select(a => a - '0').ToArray();;
+            
         }
 
         private static int[] EncodeFormatInfo(int[] format)
@@ -489,7 +509,6 @@ namespace Project_Info
                                             _notFunctionModules[line-i, col-j] = true;
                                         }
                                     }
-                                    
                                 }
 
                                 if (chain[cpt] == 1)
