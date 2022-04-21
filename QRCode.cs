@@ -643,6 +643,41 @@ namespace Project_Info
                 _alphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
             }
         }
-       
+
+        public static string ReadQrCode(Image im)
+        {
+            
+            var quietZoneWidth = 0;
+            while (im.ImageData[quietZoneWidth, quietZoneWidth] != new Pixel(0, 0, 0))
+            {
+                quietZoneWidth++;
+            }
+
+            var QrWidth = im.Width - (2 * quietZoneWidth);
+            var QrHeight = im.Height - (2 * quietZoneWidth);
+            var moduleWidth = 0;
+            while (im.ImageData[moduleWidth, moduleWidth] != new Pixel(255, 255, 255))
+            {
+                moduleWidth++;
+            }
+
+            
+            var version = (QrWidth / (4 * moduleWidth)) - (17 / 4);
+            var QrRead = new QRCode(version, quietZoneWidth, moduleWidth);
+            var Data = new Pixel[QrRead.Height, QrRead.Width];
+            for (var x = 0; x < QrRead.Width; x++)
+            {
+                for (var y = 0; y < QrRead.Width; y++)
+                {
+                    if (QrRead.ImageData[x, y] != im.ImageData[x + quietZoneWidth, y + quietZoneWidth])
+                    {
+                        Data[x, y] = im.ImageData[x + quietZoneWidth, y + quietZoneWidth];
+                    }
+                }
+            }
+
+            return null;
+
+        }
     }
 }

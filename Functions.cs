@@ -247,13 +247,11 @@ namespace Project_Info
 
         public static Image Fractal(Image im)
         {
-            
             var nbIteration =2000;
             var xmin = -2.1;
             var xmax = 0.6;
             var ymin = -1.2;
             var ymax = 1.2;
-            
             for (var y = 0; y < im.ImageData.GetLength(0); y++)
             {
                 for (var x = 0; x < im.ImageData.GetLength(1); x++)
@@ -289,7 +287,7 @@ namespace Project_Info
 
         public static Image Histograme(Image im)
         { 
-            var coefwidth = im.Height/256+1;
+            var coefwidth = (im.Width/256)+1;
             var newHeight = im.Height;
             var newWidth = 256*coefwidth;
             var histo = new Image(im.Type, im.Offset, newHeight, newWidth, im.BitRgb,
