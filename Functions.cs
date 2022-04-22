@@ -191,9 +191,9 @@ namespace Project_Info
             return endian;
         }
 
-        public static byte[] ConvertBitArrayToByteArray(int[] data)
+        public static int[] ConvertBitArrayToByteArray(int[] data)
         {
-            var result = new byte[data.Length / 8];
+            var result = new int[data.Length / 8];
             var intByte = 0;
             for (int i = 0; i < data.Length; i++)
             {
@@ -201,21 +201,21 @@ namespace Project_Info
                 intByte += (int) (Pow(2, Abs(i % 8 - 7)) * data[i]);
                 if (i != 0 && (i + 1) % 8 == 0)
                 {
-                    result[i / 8] = (byte) intByte;
+                    result[i / 8] = intByte;
                     intByte = 0;
                 }
             }
             return result;
         }
         
-        public static int[] ConvertByteArrayToBitArray(byte[] data)
+        public static int[] ConvertByteArrayToBitArray(int[] data)
         {
             var result = new int[data.Length * 8];
             for (int i = 0; i < result.Length; i++)
             {
                 var division =  (int) (data[i / 8] / Pow(2, Abs(i % 8 - 7)));
                 result[i] = division;
-                data[i / 8] -= (byte) (Pow(2, Abs(i % 8 - 7)) * division);
+                data[i / 8] -= (int) (Pow(2, Abs(i % 8 - 7)) * division);
             }
             return result;
         }

@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="OpenAI" Version="1.2.0" />
       <PackageReference Include="ReedSolomonCodes" Version="1.0.0" />
       <PackageReference Include="ReedSolomonCore" Version="1.0.0" />
       <PackageReference Include="STH1123.ReedSolomon" Version="2.1.0" />

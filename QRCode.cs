@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Linq.Expressions;
 using ReedSolomonCore;
 using STH1123.ReedSolomon;
-using ReedSolomonCore;
 
 namespace Project_Info
 {
@@ -12,7 +11,7 @@ namespace Project_Info
     {
         private int _maskPattern;
         private int _correctionLevel;
-        private readonly int _version;
+        private int _version;
         private readonly int _quietZoneWidth;
         private readonly int _moduleWidth;
         private int[] _mode;
@@ -22,11 +21,14 @@ namespace Project_Info
         private int _numberEcCodewords;
         private List<int> _wordEncodedData;
         private int[] _qrCodeData;
-        
+        private int _numberBlocksGroup1;
+        private int _numberBlocksGroup2;
+        private int _numberEcPerBlock;
+        private int _numberDataPerBlockGrp2;
+        private int _numberDataPerBlockGrp1;
 
 
-        
-        public QRCode(int version, int quietZoneWidth, int moduleWidth)
+        public QRCode(int version, int quietZoneWidth, int moduleWidth, int maskPattern, int correctionLevel, string message)
         {
             var borderSize = (8 * 2 + (4 * version + 1)) * moduleWidth + 2 * quietZoneWidth;
             ImageData = new Pixel[borderSize, borderSize];
@@ -39,8 +41,69 @@ namespace Project_Info
             Width = borderSize;
             Offset = 54;
             BitRgb = 24;
+            
+            _maskPattern = maskPattern;
+            _correctionLevel = correctionLevel;
 
             CreateEmptyQrCode();
+            EncodeStringData(message);
+            GetErrorData();
+            DataEncoding();
+            
+            
+            Functions.FillImageWhite(ImageData);
+            AddMask();
+        }
+
+        public QRCode(string message, int correctionLevel =  1)
+        {
+            _correctionLevel = correctionLevel;
+            _quietZoneWidth = 2;
+            _moduleWidth = 2;
+            
+            GetVersionFromString(message);
+            
+            var borderSize = (8 * 2 + (4 * _version + 1)) * _moduleWidth + 2 * _quietZoneWidth;
+            ImageData = new Pixel[borderSize, borderSize];
+            _notFunctionModules = new bool[borderSize, borderSize];
+            Height = borderSize;
+            Width = borderSize;
+            Offset = 54;
+            BitRgb = 24;
+
+            _maskPattern = 1;
+            
+            CreateBestMaskQRCode(message);
+            AddFormatInformation();
+            
+            EncodeStringData(message);
+            AddErrorData();
+            DataEncoding();
+            Functions.FillImageWhite(ImageData);
+
+            
+            AddMask();
+        }
+
+        private void GetVersionFromString(string message)
+        {
+            var requiredBits = 17 + (message.Length % 2) * 6 + (message.Length / 2) * 11;
+            var requiredBytes = requiredBits % 8 == 0 ? requiredBits / 8 : requiredBits / 8 + 1;
+            GetCodeDataLength(requiredBytes);
+        }
+
+        private void CreateBestMaskQRCode(string message)
+        {
+            CreateFinderPatterns(0+_quietZoneWidth, 0+_quietZoneWidth);
+            CreateSeparators(0 + _quietZoneWidth, 0 + _quietZoneWidth);
+            CreateFinderPatterns(Height - _quietZoneWidth - 7 * _moduleWidth, 0 + _quietZoneWidth);
+            CreateSeparators(Height - _quietZoneWidth - 8 * _moduleWidth, 0 + _quietZoneWidth);
+            CreateFinderPatterns(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 7 * _moduleWidth);
+            CreateSeparators(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 8 * _moduleWidth);
+            CreateAlignmentPatterns();
+            CreateTimingPatterns();
+            AddDarkModule();
+            AddVersionInformation();
         }
 
         private void CreateEmptyQrCode()
@@ -55,22 +118,13 @@ namespace Project_Info
             CreateTimingPatterns();
             AddDarkModule();
             AddVersionInformation();
-            _maskPattern = 2;
-            _correctionLevel = 1;
             SetCodeDataLengthInfo();
             AddFormatInformation();
-            EncodeStringData("SMSTO:0781629302:FDP");
-            GetErrorData();
-            DataEncoding(_qrCodeData);
-            
-            
-            Functions.FillImageRed(ImageData);
-            AddMask();
         }
 
         private int TotalCodeWords => _numberDataCodewords + _numberEcCodewords;
 
-        private byte[] ByteEncodedData => Functions.ConvertBitArrayToByteArray(_wordEncodedData.ToArray());
+        private int[] ByteEncodedData => Functions.ConvertBitArrayToByteArray(_wordEncodedData.ToArray());
 
         private void CreateFinderPatterns(int line, int col)
         {
@@ -97,7 +151,7 @@ namespace Project_Info
         {
             for (int i = line; i < 8 * _moduleWidth + line; i++)
             {
-                for (int j = col; j < 8* _moduleWidth + col; j++)
+                for (int j = col; j < 8 * _moduleWidth + col; j++)
                 {
                     ImageData[i, j] ??= new Pixel(255, 255, 255);
                 }
@@ -156,7 +210,6 @@ namespace Project_Info
                 {
                     for (var c = 0; c < _moduleWidth; c++)
                     {
-                        Console.Write(bit);
                         ImageData[fixedLine + l, movingCol + c] =
                             bit == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
                         ImageData[movingLine + l, fixedCol + c] =
@@ -262,7 +315,7 @@ namespace Project_Info
             int[] result = new int[coordinates[1].Length];
             for (var i = 0; i < coordinates[1].Length; i++)
             {
-                result[i] = (int) coordinates[1][i] - 48;
+                result[i] = coordinates[1][i] - 48;
             }
             return result;
         }
@@ -275,7 +328,8 @@ namespace Project_Info
                 1 => 0,
                 3 => 2,
                 2 => 3,
-                _ => 1
+                0 => 1,
+                _ => throw new ArgumentOutOfRangeException()
             };
 
             var selectedLine = lines[(_version - 1) * 4 + lineIndex];
@@ -290,30 +344,168 @@ namespace Project_Info
             _numberDataCodewords = result[0];
             _numberEcCodewords = result[1] * result[2] + result[1] * result[4];
             
+            _numberBlocksGroup1 = result[2];
+            _numberBlocksGroup2 = result[4];
+            
+            _numberEcPerBlock = result[1];
+            _numberDataPerBlockGrp1 = result[3];
+            _numberDataPerBlockGrp2 = result[5];
+
         }
         
-
-        
-        private void GetErrorData()
+        private void GetCodeDataLength(int requiredBytes)
         {
-            var errorFields = _numberEcCodewords;
+            var lines = Functions.ReadFile("../../../qrCodeDataLength.txt").ToArray();
+            var startIndex = _correctionLevel switch
+            {
+                1 => 0,
+                3 => 2,
+                2 => 3,
+                0 => 1,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            
+            for (var index = startIndex; index < lines.Length; index += 4)
+            {
+                var infos = lines[index].Split(";");
+                if (Convert.ToInt32(infos[1]) < requiredBytes) continue;
 
-            _qrCodeData = _wordEncodedData.ToArray();
-            //var zerosArray = Enumerable.Repeat(0, errorFields);
-            //var byteArray = ByteEncodedData.Concat(zerosArray).ToArray();
-            var byteArray = ReedSolomonAlgorithm.Encode(ByteEncodedData, errorFields, ErrorCorrectionCodeType.QRCode);
-            // Add remainder bits if needed
+                _version = Convert.ToInt32(infos[0].Split("-")[0]);
+                
+                var result = new int[infos.Length-2];
+                for (var i = 1; i < infos.Length-1; i++)
+                {
+                    result[i - 1] = Convert.ToInt32(infos[i]);
+                }
+                
+                _numberDataCodewords = result[0];
+                _numberEcCodewords = result[1] * result[2] + result[1] * result[4];
+            
+                _numberBlocksGroup1 = result[2];
+                _numberBlocksGroup2 = result[4];
+            
+                _numberEcPerBlock = result[1];
+                _numberDataPerBlockGrp1 = result[3];
+                _numberDataPerBlockGrp2 = result[5];
+                
+
+                break;
+            }
+        }
+
+
+        private void AddErrorData()
+        {
+            var field = new GenericGF(285, 256, 0);
+            var rse = new ReedSolomonEncoder(field);
+            var maxNumberDataPerBlock = Math.Max(_numberDataPerBlockGrp1, _numberDataPerBlockGrp2);
+            
+            var encodedData = new int[_numberBlocksGroup1 + _numberBlocksGroup2, maxNumberDataPerBlock];
+            var errorEncodedData = new int[_numberBlocksGroup1 + _numberBlocksGroup2, _numberEcPerBlock];
+
+            // Error Data Group 1
+            for (int i = 0; i < _numberBlocksGroup1; i++)
+            {
+                var errorFields = _numberEcPerBlock;
+                
+                var dataBlock = ByteEncodedData[(i * _numberDataPerBlockGrp1)..((i + 1) * _numberDataPerBlockGrp1)];
+                var zerosArray = Enumerable.Repeat(0, errorFields);
+
+                var byteArray = dataBlock.Concat(zerosArray).ToArray();
+                rse.Encode(byteArray, errorFields);
+                
+                for (var j = 0; j < maxNumberDataPerBlock; j++)
+                {
+                    encodedData[i, j] = j >= _numberDataPerBlockGrp1 ? -1 : byteArray[j];
+                }
+                for (var j = 0; j < _numberEcPerBlock; j++)
+                {
+                    errorEncodedData[i, j] = byteArray[j + _numberDataPerBlockGrp1];
+                }
+            }
+            
+            //Error data group 2
+            for (int i = 0; i < _numberBlocksGroup2; i++)
+            {
+                var errorFields = _numberEcPerBlock;
+                
+                var dataBlock = ByteEncodedData[(i * _numberDataPerBlockGrp2 + _numberBlocksGroup1 * _numberDataPerBlockGrp1)..((i + 1) * _numberDataPerBlockGrp2 + _numberBlocksGroup1 * _numberDataPerBlockGrp1)];
+                var zerosArray = Enumerable.Repeat(0, errorFields);
+
+                var byteArray = dataBlock.Concat(zerosArray).ToArray();
+                rse.Encode(byteArray, errorFields);
+                
+                for (var j = 0; j < maxNumberDataPerBlock; j++)
+                {
+                    encodedData[i + _numberBlocksGroup1, j] = j >= _numberDataPerBlockGrp2 ? -1 : byteArray[j];
+                }
+                for (var j = 0; j < _numberEcPerBlock; j++)
+                {
+                    errorEncodedData[i + _numberBlocksGroup1, j] = byteArray[j + _numberDataPerBlockGrp2];
+                }
+            }
+            
+            var qrFinalData = new List<int>();
+            
+            for (var i = 0; i < maxNumberDataPerBlock; i++)
+            {
+                for (var j = 0; j < _numberBlocksGroup1 + _numberBlocksGroup2; j++)
+                {
+                    if (encodedData[j, i] == -1) continue;
+                    qrFinalData.Add(encodedData[j, i]);
+                }
+            }
+            
+            for (var i = 0; i < _numberEcPerBlock; i++)
+            {
+                for (var j = 0; j < _numberBlocksGroup1 + _numberBlocksGroup2; j++)
+                {
+                    qrFinalData.Add(errorEncodedData[j, i]);
+                }
+            }
+
+
             var lines = Functions.ReadFile("../../../qrRemainderBits.txt").ToArray();
-            var selectedLine = lines[_version];
+            var selectedLine = lines[_version - 1];
             var coordinates = selectedLine.Split(";");
             var remainder = Convert.ToInt32(coordinates[1]);
-            var bitArray = Functions.ConvertByteArrayToBitArray(byteArray).ToList();
+            
+            var bitArray = Functions.ConvertByteArrayToBitArray(qrFinalData.ToArray()).ToList();
             for (var i = 0; i < remainder; i++)
             {
                 bitArray.Add(0);
             }
-            _qrCodeData = _qrCodeData.Concat(bitArray).ToArray();
+            _qrCodeData = bitArray.ToArray();
         }
+        
+        private void GetErrorData()
+        {
+            var field = new GenericGF(285, 256, 0);
+            var rse = new ReedSolomonEncoder(field);
+            //Max byte value = 255 (OxFF)
+            
+            var errorFields = _numberEcCodewords;
+            
+            var zerosArray = Enumerable.Repeat((int) 0, errorFields);
+            var byteArray = ByteEncodedData.Concat(zerosArray).ToArray();
+            var intByteArray = Array.ConvertAll(byteArray, x => (int) x);
+            rse.Encode(intByteArray, errorFields);
+            
+            // Add remainder bits if needed
+            var lines = Functions.ReadFile("../../../qrRemainderBits.txt").ToArray();
+            var selectedLine = lines[_version - 1];
+            var coordinates = selectedLine.Split(";");
+            var remainder = Convert.ToInt32(coordinates[1]);
+            
+            var bitArray = Functions.ConvertByteArrayToBitArray(intByteArray).ToList();
+            for (var i = 0; i < remainder; i++)
+            {
+                bitArray.Add(0);
+            }
+
+            _qrCodeData = bitArray.ToArray();
+        }
+
 
         private int[] GetFormatInfoOld()
         {
@@ -332,7 +524,7 @@ namespace Project_Info
                 1 => 0*8,
                 3 => 2*8,
                 2 => 3*8,
-                4 => 1*8,
+                0 => 1*8,
                 _ => throw new ArgumentOutOfRangeException()
             };
 
@@ -340,7 +532,6 @@ namespace Project_Info
             
             var infos = selectedLine.Split(";");
             return infos[2].Select(a => a - '0').ToArray();;
-            
         }
 
         private static int[] EncodeFormatInfo(int[] format)
@@ -471,8 +662,9 @@ namespace Project_Info
 
 
         }
-        private void DataEncoding(int[] chain)
+        private void DataEncoding()
         {
+            var chain = _qrCodeData;
             for (int k = 0; k < chain.Length; k++)
             {
                 Console.Write(chain[k]);
