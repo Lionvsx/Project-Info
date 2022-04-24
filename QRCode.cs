@@ -85,6 +85,11 @@ namespace Project_Info
             AddMask();
         }
 
+        private QRCode(int version, int quietZoneWidth, int moduleWidth)
+        {
+            throw new NotImplementedException();
+        }
+
         private void GetVersionFromString(string message)
         {
             var requiredBits = 17 + (message.Length % 2) * 6 + (message.Length / 2) * 11;
