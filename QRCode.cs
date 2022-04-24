@@ -58,8 +58,8 @@ namespace Project_Info
         public QRCode(string message, int correctionLevel =  1)
         {
             _correctionLevel = correctionLevel;
-            _quietZoneWidth = 2;
-            _moduleWidth = 2;
+            _quietZoneWidth = 6;
+            _moduleWidth = 3;
             
             GetVersionFromString(message);
             
@@ -71,7 +71,7 @@ namespace Project_Info
             Offset = 54;
             BitRgb = 24;
 
-            _maskPattern = 1;
+            _maskPattern = 7;
             
             CreateBestMaskQRCode(message);
             AddFormatInformation();
@@ -87,7 +87,19 @@ namespace Project_Info
 
         private QRCode(int version, int quietZoneWidth, int moduleWidth)
         {
-            throw new NotImplementedException();
+            _version = version;
+            _quietZoneWidth = quietZoneWidth;
+            _moduleWidth = moduleWidth;
+            
+            var borderSize = (8 * 2 + (4 * _version + 1)) * _moduleWidth + 2 * _quietZoneWidth;
+            ImageData = new Pixel[borderSize, borderSize];
+            _notFunctionModules = new bool[borderSize, borderSize];
+            Height = borderSize;
+            Width = borderSize;
+            Offset = 54;
+            BitRgb = 24;
+            
+            CreateEmptyQrCode();
         }
 
         private void GetVersionFromString(string message)
@@ -367,14 +379,15 @@ namespace Project_Info
                 3 => 2,
                 2 => 3,
                 0 => 1,
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(nameof(_correctionLevel))
             };
             
             for (var index = startIndex; index < lines.Length; index += 4)
             {
                 var infos = lines[index].Split(";");
+                if (index > 40 * 4) throw new ArgumentOutOfRangeException(nameof(requiredBytes));
                 if (Convert.ToInt32(infos[1]) < requiredBytes) continue;
-
+                
                 _version = Convert.ToInt32(infos[0].Split("-")[0]);
                 
                 var result = new int[infos.Length-2];
