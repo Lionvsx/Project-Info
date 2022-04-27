@@ -74,10 +74,9 @@ namespace Project_Info
             _maskPattern = 7;
             
             CreateBestMaskQRCode(message);
-            AddFormatInformation();
             
-            EncodeStringData(message);
-            AddErrorData();
+            AddFormatInformation();
+
             DataEncoding();
             Functions.FillImageWhite(ImageData);
 
@@ -117,11 +116,30 @@ namespace Project_Info
             CreateSeparators(Height - _quietZoneWidth - 8 * _moduleWidth, 0 + _quietZoneWidth);
             CreateFinderPatterns(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 7 * _moduleWidth);
             CreateSeparators(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 8 * _moduleWidth);
-            CreateAlignmentPatterns();
+            
+            
+            var borderSize = (8 * 2 + (4 * _version + 1));
+            var masksMatrix = new bool[borderSize, borderSize, 8];
+            CreateMaskFinderPatterns(0, 0, masksMatrix);
+            CreateMaskFinderPatterns(borderSize - 7, 0, masksMatrix);
+            CreateMaskFinderPatterns(0, borderSize - 7, masksMatrix);
+            CreateAlignmentPatternsWithMasks(masksMatrix);
+            
+            
+            
             CreateTimingPatterns();
+            CreateMasksTimingPatterns(masksMatrix, borderSize);
+            
             AddDarkModule();
-            AddVersionInformation();
+            AddMasksDarkModule(masksMatrix);
+            
+            AddVersionInformationWithMasks(masksMatrix);
+            
+            EncodeStringData(message);
+            AddErrorData();
         }
+
+
 
         private void CreateEmptyQrCode()
         {
@@ -162,6 +180,26 @@ namespace Project_Info
             }
         }
         
+        private void CreateMaskFinderPatterns(int line, int col, bool[,,] masksMatrix)
+        {
+            for (var k = 0; k < 8; k++)
+            {
+                for (var i = line; i < 7 + line; i++)
+                {
+                    for (var j = col; j < 7 + col; j++)
+                    {
+                        if (j < col || i < line) masksMatrix[i, j, k] = true;
+                        else if (j > col + 5 ||
+                                 i > line + 5) masksMatrix[i, j, k] = true;
+                        else if (j >= col + 2 &&
+                                 i >= line + 2 &&
+                                 j <= col + 4 &&
+                                 i <= line + 4) masksMatrix[i, j, k] = true;
+                    }
+                }
+            }
+        }
+        
         
 
         private void CreateSeparators(int line, int col)
@@ -197,6 +235,22 @@ namespace Project_Info
                 }
             }
         }
+        
+        private void CreateMasksTimingPatterns(bool[,,] masksMatrix, int borderSize)
+        {
+            for (var k = 0; k < 8; k++)
+            {
+                for (var line = 7; line <= borderSize - 7; line++)
+                {
+                    if (line % 2 == 0) masksMatrix[line, 6, k] = true;
+                }
+            
+                for (var col = 7; col <= borderSize - 7; col++)
+                {
+                    if (col % 2 == 0) masksMatrix[6, col, k] = true;
+                }
+            }
+        }
 
         private void AddDarkModule()
         {
@@ -207,6 +261,15 @@ namespace Project_Info
                 {
                     ImageData[line, col] = new Pixel(0, 0, 0);
                 }
+            }
+        }
+        
+        private void AddMasksDarkModule(bool[,,] masksMatrix)
+        {
+            var startingLine = (4 * _version + 9);
+            for (var k = 0; k < 8; k++)
+            {
+                masksMatrix[startingLine, 8, k] = true;
             }
         }
 
@@ -233,18 +296,13 @@ namespace Project_Info
                             bit == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
                     }
                 }
-                var next = false;
-                if (movingLine-1*_moduleWidth == (4 * _version + 9) * _moduleWidth + _quietZoneWidth)
+                if (movingLine - 1 * _moduleWidth == (4 * _version + 9) * _moduleWidth + _quietZoneWidth &&
+                    movingCol == 7 * _moduleWidth + _quietZoneWidth)
                 {
                     movingLine = 8 * _moduleWidth + _quietZoneWidth;
-                    next = true;
-                }
-                if (movingCol == 7 * _moduleWidth + _quietZoneWidth)
-                {
                     movingCol = ImageData.GetLength(1) - _quietZoneWidth - 8 * _moduleWidth;
-                    next = true;
+                    continue;
                 }
-                if (next) continue;
 
                 movingLine -= 1 * _moduleWidth;
                 movingCol += 1 * _moduleWidth;
@@ -271,6 +329,33 @@ namespace Project_Info
                 }
             }
         }
+        
+        private void AddVersionInformationWithMasks(bool[,,] masksMatrix)
+        {
+            if (_version < 7) return;
+            var bitArray = GetQRVersion();
+            for (int i = 0; i < bitArray.Length; i++)
+            {
+                var newPixel = bitArray[i] == 1 ? new Pixel(0, 0, 0) : new Pixel(255, 255, 255);
+                var line = (2 - i % 3) * _moduleWidth + ImageData.GetLength(0) - 11 * _moduleWidth - _quietZoneWidth;
+                var col = (5 - i / 3) * _moduleWidth + _quietZoneWidth;
+
+                var maskLine = 2 - i % 3 + masksMatrix.GetLength(0) - 11;
+                var maskCol = 5 - i / 3;
+                for (var l = line; l < _moduleWidth + line; l++)
+                {
+                    for (var c = col; c < _moduleWidth + col; c++)
+                    {
+                        ImageData[l, c] = newPixel;
+                        ImageData[c, l] = newPixel;
+                    }
+                }
+                for (int k = 0; k < 8; k++)
+                {
+                    masksMatrix[maskLine, maskCol, k] = bitArray[i] == 1;
+                }
+            }
+        }
 
         private void CreateAlignmentPatterns()
         {
@@ -281,10 +366,48 @@ namespace Project_Info
             var arrayOfCoordinates = Functions.DoubleIntCombinations<int[]>(coordinates);
             foreach (var item in arrayOfCoordinates)
             {
-                CreateAlignmentPattern(item[0], item[1]);
-                CreateAlignmentPattern(item[1], item[0]);
-                CreateAlignmentPattern(item[0], item[0]);
-                CreateAlignmentPattern(item[1], item[1]);
+                CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);
+                CreateAlignmentPattern(item[1]*_moduleWidth + _quietZoneWidth, item[0]*_moduleWidth + _quietZoneWidth);
+                CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[0]*_moduleWidth + _quietZoneWidth);
+                CreateAlignmentPattern(item[1]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);
+            }
+        }
+        
+        private void CreateAlignmentPatternsWithMasks(bool[,,] masksMatrix)
+        {
+            if (_version < 2) return;
+            var coordinates = new List<int>(GetQRAlignmentCoordinates());
+            
+            var arrayOfCoordinates = Functions.DoubleIntCombinations<int[]>(coordinates);
+            foreach (var item in arrayOfCoordinates)
+            {
+                CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);
+                CreateAlignmentPattern(item[1]*_moduleWidth + _quietZoneWidth, item[0]*_moduleWidth + _quietZoneWidth);
+                CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[0]*_moduleWidth + _quietZoneWidth);
+                CreateAlignmentPattern(item[1]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);
+                CreateMasksAlignmentPattern(item[0], item[1], masksMatrix);
+                CreateMasksAlignmentPattern(item[1], item[0], masksMatrix);
+                CreateMasksAlignmentPattern(item[0], item[0], masksMatrix);
+                CreateMasksAlignmentPattern(item[1], item[1], masksMatrix);
+            }
+        }
+        
+
+        private void CreateMasksAlignmentPattern(int col, int line, bool[,,] masksMatrix)
+        {
+            if (masksMatrix[line, col, 0]) return;
+            for (int k = 0; k < 8; k++)
+            {
+                for (int i = line - 2; i <= line + 2; i++)
+                {
+                    for (int j = col - 2; j <= col + 2; j++)
+                    {
+                        var fakeLine = i - (line - 2);
+                        var fakeCol = j - (col - 2);
+                        masksMatrix[i, j, k] = fakeLine == 0 || fakeCol == 0 || fakeLine == 4 || fakeCol == 4 ||
+                                               (fakeLine == 2 && fakeCol == 2);
+                    }
+                }
             }
         }
         
@@ -317,7 +440,7 @@ namespace Project_Info
             int[] result = new int[coordinates.Length-1];
             for (var i = 1; i < coordinates.Length; i++)
             {
-                result[i - 1] = Convert.ToInt32(coordinates[i])*_moduleWidth + _quietZoneWidth;
+                result[i - 1] = Convert.ToInt32(coordinates[i]);
             }
             return result;
         }
@@ -736,36 +859,34 @@ namespace Project_Info
                                 cpt++;
                             }
 
-                            if (ImageData[line, col-_moduleWidth] == null)
+                            if (ImageData[line, col - _moduleWidth] != null) continue;
+                            if (chain[cpt] == 0)
                             {
-                                
-                                if (chain[cpt] == 0)
+                                for (var i = 0; i < _moduleWidth; i++)
                                 {
-                                    for (var i = 0; i < _moduleWidth; i++)
+                                    for (var j = 0; j < _moduleWidth; j++)
                                     {
-                                        for (var j = 0; j < _moduleWidth; j++)
-                                        {
-                                            ImageData[line-i, col-_moduleWidth-j] = new Pixel(255, 255, 255);
-                                            _notFunctionModules[line-i, col-_moduleWidth-j] = true;
-                                        }
+                                        ImageData[line - i, col - _moduleWidth - j] = new Pixel(255, 255, 255);
+                                        _notFunctionModules[line - i, col - _moduleWidth - j] = true;
                                     }
-                                    
                                 }
-                                if (chain[cpt] == 1)
-                                {
-                                    for (var i = 0; i < _moduleWidth; i++)
-                                    {
-                                        for (var j = 0; j < _moduleWidth; j++)
-                                        {
-                                            ImageData[line-i, col-_moduleWidth-j] = new Pixel(0, 0, 0);
-                                            _notFunctionModules[line-i, col-j-_moduleWidth] = true;
-                                        }
-                                    }
-                                    
-                                }
-                                
-                                cpt++;
+
                             }
+
+                            if (chain[cpt] == 1)
+                            {
+                                for (var i = 0; i < _moduleWidth; i++)
+                                {
+                                    for (var j = 0; j < _moduleWidth; j++)
+                                    {
+                                        ImageData[line - i, col - _moduleWidth - j] = new Pixel(0, 0, 0);
+                                        _notFunctionModules[line - i, col - j - _moduleWidth] = true;
+                                    }
+                                }
+
+                            }
+
+                            cpt++;
                         }
                     }
                     else
@@ -806,36 +927,34 @@ namespace Project_Info
                                 cpt++;
                             }
 
-                            if (ImageData[line,col-_moduleWidth] == null)
+                            if (ImageData[line, col - _moduleWidth] != null) continue;
+                            if (chain[cpt] == 0)
                             {
-                                
-                                if (chain[cpt] == 0)
+                                for (var i = 0; i < _moduleWidth; i++)
                                 {
-                                    for (var i = 0; i < _moduleWidth; i++)
+                                    for (var j = 0; j < _moduleWidth; j++)
                                     {
-                                        for (var j = 0; j < _moduleWidth; j++)
-                                        {
-                                            ImageData[line+i, col-_moduleWidth-j] = new Pixel(255, 255, 255);
-                                            _notFunctionModules[line+i, col-_moduleWidth-j] = true;
-                                        }
+                                        ImageData[line + i, col - _moduleWidth - j] = new Pixel(255, 255, 255);
+                                        _notFunctionModules[line + i, col - _moduleWidth - j] = true;
                                     }
-                                    
-                                }                               
-                                if (chain[cpt] == 1)
-                                {
-                                    for (var i = 0; i < _moduleWidth; i++)
-                                    {
-                                        for (var j = 0; j < _moduleWidth; j++)
-                                        {
-                                            ImageData[line+i, col-_moduleWidth-j] = new Pixel(0, 0, 0);
-                                            _notFunctionModules[line+i, col-_moduleWidth-j] = true;
-                                        }
-                                    }
-                                    
-                                }                                
-                                
-                                cpt++;
+                                }
+
                             }
+
+                            if (chain[cpt] == 1)
+                            {
+                                for (var i = 0; i < _moduleWidth; i++)
+                                {
+                                    for (var j = 0; j < _moduleWidth; j++)
+                                    {
+                                        ImageData[line + i, col - _moduleWidth - j] = new Pixel(0, 0, 0);
+                                        _notFunctionModules[line + i, col - _moduleWidth - j] = true;
+                                    }
+                                }
+
+                            }
+
+                            cpt++;
                         }
                     }
 
