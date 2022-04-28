@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.Linq;
-using ReedSolomonCore;
 using STH1123.ReedSolomon;
 
 namespace Project_Info
@@ -1107,47 +1105,47 @@ namespace Project_Info
             };
             
             
-                var infos = lines[version*4-1-startIndex].Split(";");
-                var result = new int[infos.Length-2];
-                for (var i = 1; i < infos.Length-1; i++)
-                {
-                    result[i - 1] = Convert.ToInt32(infos[i]);
-                }
-                
-                var numberDataCodewords = result[0];
-                var numberEcCodewords = result[1] * result[2] + result[1] * result[4];
+            var infos = lines[version*4-1-startIndex].Split(";");
+            var result = new int[infos.Length-2];
+            for (var i = 1; i < infos.Length-1; i++)
+            {
+                result[i - 1] = Convert.ToInt32(infos[i]);
+            }
             
-                var numberBlocksGroup1 = result[2];
-                var numberBlocksGroup2 = result[4];
-            
-                var numberEcPerBlock = result[1];
-                var numberDataPerBlockGrp1 = result[3];
-                var numberDataPerBlockGrp2= result[5];
-                var maxNumberDataPerBlock = Math.Max(numberDataPerBlockGrp1, numberDataPerBlockGrp2);
-                var decodedData = new int[numberBlocksGroup1 + numberBlocksGroup2, maxNumberDataPerBlock*8];
-                for ( var j = 0; j < maxNumberDataPerBlock*8; j+=8)
+            var numberDataCodewords = result[0];
+            var numberEcCodewords = result[1] * result[2] + result[1] * result[4];
+        
+            var numberBlocksGroup1 = result[2];
+            var numberBlocksGroup2 = result[4];
+        
+            var numberEcPerBlock = result[1];
+            var numberDataPerBlockGrp1 = result[3];
+            var numberDataPerBlockGrp2= result[5];
+            var maxNumberDataPerBlock = Math.Max(numberDataPerBlockGrp1, numberDataPerBlockGrp2);
+            var decodedData = new int[numberBlocksGroup1 + numberBlocksGroup2, maxNumberDataPerBlock*8];
+            for ( var j = 0; j < maxNumberDataPerBlock*8; j+=8)
+            {
+                for (var i = 0;i<decodedData.GetLength(0); i++)
                 {
-                    for (var i = 0;i<decodedData.GetLength(0); i++)
+                    
+                    for (var k = 0; k < 8; k++)
                     {
-                        
-                        for (var k = 0; k < 8; k++)
-                        {
-                            if (i* (maxNumberDataPerBlock * 8)+j + k >= numberDataCodewords*8) break;
-                            decodedData[i, j+k] = data[i* (maxNumberDataPerBlock * 8)+j + k];
-                        }
+                        if (i* (maxNumberDataPerBlock * 8)+j + k >= numberDataCodewords*8) break;
+                        decodedData[i, j+k] = data[i* (maxNumberDataPerBlock * 8)+j + k];
                     }
                 }
+            }
 
-                var message = new List<int>();
-                for (var x = 0; x < decodedData.GetLength(0); x++)
+            var message = new List<int>();
+            for (var x = 0; x < decodedData.GetLength(0); x++)
+            {
+                for (var y = 0; y < decodedData.GetLength(1); y++)
                 {
-                    for (var y = 0; y < decodedData.GetLength(1); y++)
-                    {
-                        message.Add(decodedData[x,y]);
-                    }
+                    message.Add(decodedData[x,y]);
                 }
+            }
 
-                return message.ToArray();
+            return message.ToArray();
 
         }
         public static List<int> DataDecoding(Pixel[,] data, int quietZoneWidth, int moduleWidth)
