@@ -1119,29 +1119,55 @@ namespace Project_Info
             var numberBlocksGroup2 = result[4];
         
             var numberEcPerBlock = result[1];
+            
             var numberDataPerBlockGrp1 = result[3];
             var numberDataPerBlockGrp2= result[5];
+            
+            var numberDataPerBlockArray = new[] {numberDataPerBlockGrp1, numberDataPerBlockGrp2};
+            
             var maxNumberDataPerBlock = Math.Max(numberDataPerBlockGrp1, numberDataPerBlockGrp2);
-            var decodedData = new int[numberBlocksGroup1 + numberBlocksGroup2, maxNumberDataPerBlock*8];
-            for ( var j = 0; j < maxNumberDataPerBlock*8; j+=8)
+
+            data = Functions.ConvertBitArrayToByteArray(data.ToArray()).ToList();
+            
+            var decodedDataMatrix = new int[numberBlocksGroup1 + numberBlocksGroup2, maxNumberDataPerBlock];
+
+            var dataIndex = 0;
+            for (var j = 0; j < decodedDataMatrix.GetLength(1); j++)
             {
-                for (var i = 0;i<decodedData.GetLength(0); i++)
+                for (var i = 0; i < decodedDataMatrix.GetLength(0); i++)
                 {
-                    
-                    for (var k = 0; k < 8; k++)
+                    decodedDataMatrix[i, j] = data[dataIndex];
+                    var currentNumberDataPerBlock = numberDataPerBlockArray[j / numberBlocksGroup1];
+                    if (i >= currentNumberDataPerBlock)
                     {
-                        if (i* (maxNumberDataPerBlock * 8)+j + k >= numberDataCodewords*8) break;
-                        decodedData[i, j+k] = data[i* (maxNumberDataPerBlock * 8)+j + k];
+                        decodedDataMatrix[i, j] = -1;
+                        continue;
                     }
+                    dataIndex++;
                 }
             }
 
-            var message = new List<int>();
-            for (var x = 0; x < decodedData.GetLength(0); x++)
-            {
-                for (var y = 0; y < decodedData.GetLength(1); y++)
+
+                /*
+                for ( var j = 0; j < maxNumberDataPerBlock*8; j+=8)
                 {
-                    message.Add(decodedData[x,y]);
+                    for (var i = 0;i<decodedData.GetLength(0); i++)
+                    {
+                        
+                        for (var k = 0; k < 8; k++)
+                        {
+                            if (i* (maxNumberDataPerBlock * 8)+j + k >= numberDataCodewords*8) break;
+                            decodedData[i, j+k] = data[i* (maxNumberDataPerBlock * 8)+j + k];
+                        }
+                    }
+                }*/
+
+            var message = new List<int>();
+            for (var x = 0; x < decodedDataMatrix.GetLength(0); x++)
+            {
+                for (var y = 0; y < decodedDataMatrix.GetLength(1); y++)
+                {
+                    message.Add(decodedDataMatrix[x,y]);
                 }
             }
 
