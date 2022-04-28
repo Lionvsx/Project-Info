@@ -479,7 +479,7 @@ namespace Project_Info
             return array;
         }
 
-        public static IEnumerable<int[]> DoubleIntCombinations<T>(IEnumerable<int> source)
+        public static IEnumerable<int[]> DoubleIntCombinations(IEnumerable<int> source)
         {
             var combinations = Combinations(source);
             return combinations.Where(v => v.Length == 2).ToArray();

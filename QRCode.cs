@@ -157,8 +157,6 @@ namespace Project_Info
             AddFormatInformation();
         }
 
-        private int TotalCodeWords => _numberDataCodewords + _numberEcCodewords;
-
         private int[] ByteEncodedData => Functions.ConvertBitArrayToByteArray(_wordEncodedData.ToArray());
 
         private void CreateFinderPatterns(int line, int col)
@@ -363,7 +361,7 @@ namespace Project_Info
             if (_version < 2) return;
             var coordinates = new List<int>(GetQRAlignmentCoordinates());
             
-            var arrayOfCoordinates = Functions.DoubleIntCombinations<int[]>(coordinates);
+            var arrayOfCoordinates = Functions.DoubleIntCombinations(coordinates);
             foreach (var item in arrayOfCoordinates)
             {
                 CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);
@@ -378,7 +376,7 @@ namespace Project_Info
             if (_version < 2) return;
             var coordinates = new List<int>(GetQRAlignmentCoordinates());
             
-            var arrayOfCoordinates = Functions.DoubleIntCombinations<int[]>(coordinates);
+            var arrayOfCoordinates = Functions.DoubleIntCombinations(coordinates);
             foreach (var item in arrayOfCoordinates)
             {
                 CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);

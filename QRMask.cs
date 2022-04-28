@@ -1,6 +1,6 @@
 namespace Project_Info
 {
-    public static class QRMasks
+    public class QRMask
     {
         
     }
