@@ -1125,9 +1125,9 @@ namespace Project_Info
                 var numberDataPerBlockGrp2= result[5];
                 var maxNumberDataPerBlock = Math.Max(numberDataPerBlockGrp1, numberDataPerBlockGrp2);
                 var decodedData = new int[numberBlocksGroup1 + numberBlocksGroup2, maxNumberDataPerBlock*8];
-                for ( var i = 0;i<decodedData.GetLength(0); i++)
+                for ( var j = 0; j < maxNumberDataPerBlock; j+=8)
                 {
-                    for (var j = 0; j < maxNumberDataPerBlock; j+=8)
+                    for (var i = 0;i<decodedData.GetLength(0); i++)
                     {
                         
                         for (var k = 0; k < 8; k++)
