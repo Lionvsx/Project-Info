@@ -972,16 +972,64 @@ namespace Project_Info
                 _alphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
             }
         }
+        private static void AddMaskTemp(Pixel[,] im, int quietZoneWidth, int moduleWidth, int mask)
+        {
+            //Iterate through each pixel of the ImageData matrix
+            for (int line = 0 + quietZoneWidth; line < im.GetLength(0); line+=moduleWidth)
+            {
+                for (int col = 0 + quietZoneWidth; col < im.GetLength(1); col+=moduleWidth)
+                {
+                    int fLine = (line - quietZoneWidth)/moduleWidth;
+                    int fCol = (col - quietZoneWidth)/moduleWidth;
+                    if (im[fLine, fCol] != null) ;
+                    {
+                        for (var i = line; i < line + moduleWidth; i++)
+                        {
+                            for (var j = col; j < col + moduleWidth; j++)
+                            {
+                                im[i, j] = mask switch
+                                {
+                                    0 => (fLine + fCol) % 2 == 0
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    1 => (fLine) % 2 == 0
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    2 => (fCol) % 3 == 0
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    3 => ((fLine + fCol) % 3 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    4 =>((fLine / 2 + fCol / 3) % 2 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    5 => ((fLine * fCol) % 2 + (fLine * fCol) % 3 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    6 => (((fLine * fCol) % 2 + (fLine * fCol) % 3) % 2 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    7 => (((fLine * fCol) % 3 + (fLine + fCol) % 2) % 2 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    _ => throw new ArgumentException("Mask pattern not found")
+                                };
+                            }
+                        }
+                    }
+                }
+            }
 
+
+        }
         public static string ReadQrCode(Image im)
         {
-            
             var quietZoneWidth = 0;
             while (im.ImageData[quietZoneWidth, quietZoneWidth] != new Pixel(0, 0, 0))
             {
                 quietZoneWidth++;
             }
-
             var QrWidth = im.Width - (2 * quietZoneWidth);
             var QrHeight = im.Height - (2 * quietZoneWidth);
             var moduleWidth = 0;
@@ -989,10 +1037,11 @@ namespace Project_Info
             {
                 moduleWidth++;
             }
-
-            
             var version = (QrWidth / (4 * moduleWidth)) - (17 / 4);
             var QrRead = new QRCode(version, quietZoneWidth, moduleWidth);
+            var format = ExtractFormatInfo(im, QrRead);
+            var mask = Convert.ToInt32(format[1]);
+            QrRead._maskPattern = Convert.ToInt32(format[1]);
             var Data = new Pixel[QrRead.Height, QrRead.Width];
             for (var x = 0; x < QrRead.Width; x++)
             {
@@ -1002,11 +1051,134 @@ namespace Project_Info
                     {
                         Data[x, y] = im.ImageData[x + quietZoneWidth, y + quietZoneWidth];
                     }
+                    
+                }
+            }
+            AddMaskTemp(Data, quietZoneWidth,moduleWidth,mask);
+            var data = DataDecoding(Data, quietZoneWidth, moduleWidth);
+             
+            return null;
+
+        }
+
+        public static char[] ExtractFormatInfo(Image im, QRCode QrRead)
+        {
+            var fixedLine = 8 * QrRead._moduleWidth + QrRead._quietZoneWidth;
+            var movingCol = 0 + QrRead._quietZoneWidth;
+            int[] formatData = new int[15];
+            for (var i = 0; i < formatData.Length; i++)
+            {
+                formatData[i] =
+                im.ImageData[fixedLine, movingCol + i] == new Pixel(255, 255, 255)
+                    ?  0
+                    :  1;
+                
+                if (movingCol+i == 7 * QrRead._moduleWidth + QrRead._quietZoneWidth)
+                {
+                    movingCol = im.ImageData.GetLength(1) - QrRead._quietZoneWidth - 8 * QrRead._moduleWidth;
+                    
                 }
             }
 
-            return null;
+            var ErMask = new char[2];
+            var data = Convert.ToString(formatData);
+            var lines = Functions.ReadFile("../../../qrFormat.txt").ToArray();
+            for (var i = 0; i < lines.Length; i++)
+            {
+                if (data == lines[i])
+                {
+                    ErMask[0] = lines[i][0];
+                    ErMask[1] = lines[i][1];
+                }
+            }
 
+            return ErMask;
+
+        }
+
+        public static string DecodeStringData(List<int> data)
+        {
+            return null;
+        }
+        public static List<int> DataDecoding(Pixel[,] data, int quietZoneWidth, int moduleWidth)
+        {
+            var upp = true;
+            var chain = new List<int>();
+            var skip = false;
+                for (var col = data.GetLength(1) - 1-quietZoneWidth; col >quietZoneWidth; col -=2*moduleWidth)
+                {
+                    if (upp)
+                    {
+                        for (var line = data.GetLength(0) - 1-quietZoneWidth; line >= quietZoneWidth; line-=moduleWidth)
+                        {
+                            if (col <= 7 * moduleWidth + quietZoneWidth && skip == false)
+                            {
+                                col -= moduleWidth;
+                                skip = true;
+                            }
+
+                            if (data[line, col] != null)
+                            {
+                                if (data[line, col] == new Pixel(255, 255, 255))
+                                {
+                                    chain.Add(0);
+                                }
+                                if (data[line, col] == new Pixel(0, 0, 0))
+                                {
+                                    chain.Add(1);
+                                }
+                            }
+
+                            if (data[line, col-moduleWidth] != null)
+                            {
+                                if (data[line, col-moduleWidth] == new Pixel(255, 255, 255))
+                                {
+                                    chain.Add(0);
+                                }
+                                if (data[line, col-moduleWidth] == new Pixel(0, 0, 0))
+                                {
+                                    chain.Add(1);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (var line = quietZoneWidth; line <=data.GetLength(0)-1-quietZoneWidth; line+= moduleWidth)
+                        {
+                            if (col <= 7 * moduleWidth + quietZoneWidth && skip == false)
+                            {
+                                col -= moduleWidth;
+                                skip = true;
+                            }
+                            if (data[line, col] != null)
+                            {
+
+                                if (data[line, col] == new Pixel(255, 255, 255))
+                                {
+                                    chain.Add(0);
+                                }
+                                if (data[line, col] == new Pixel(0, 0, 0))
+                                {
+                                    chain.Add(1);
+                                }
+                            }
+                            if (data[line, col-moduleWidth] != null)
+                            {
+                                if (data[line, col-moduleWidth] == new Pixel(255, 255, 255))
+                                {
+                                    chain.Add(0);
+                                }
+                                if (data[line, col-moduleWidth] == new Pixel(0, 0, 0))
+                                {
+                                    chain.Add(1);
+                                }
+                            }
+                        }
+                    }
+                    upp = !upp;
+                }
+                return chain;
         }
     }
 }
