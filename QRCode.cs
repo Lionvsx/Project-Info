@@ -1040,6 +1040,7 @@ namespace Project_Info
             var version = (QrWidth / (4 * moduleWidth)) - (17 / 4);
             var QrRead = new QRCode(version, quietZoneWidth, moduleWidth);
             var format = ExtractFormatInfo(im, QrRead);
+            var correctionLevel = format[0];
             var mask = Convert.ToInt32(format[1]);
             QrRead._maskPattern = Convert.ToInt32(format[1]);
             var Data = new Pixel[QrRead.Height, QrRead.Width];
@@ -1051,12 +1052,11 @@ namespace Project_Info
                     {
                         Data[x, y] = im.ImageData[x + quietZoneWidth, y + quietZoneWidth];
                     }
-                    
                 }
             }
             AddMaskTemp(Data, quietZoneWidth,moduleWidth,mask);
             var data = DataDecoding(Data, quietZoneWidth, moduleWidth);
-             
+            var decoData = DecodeStringData(data, correctionLevel, version);
             return null;
 
         }
@@ -1096,9 +1096,61 @@ namespace Project_Info
 
         }
 
-        public static string DecodeStringData(List<int> data)
+        public static int[] DecodeStringData(List<int> data, char correctionLevel, int version)
         {
-            return null;
+            var lines = Functions.ReadFile("../../../qrCodeDataLength.txt").ToArray();
+            var startIndex = correctionLevel switch
+            {
+                'L' => 3,
+                'M' => 2,
+                'Q' => 1,
+                'H' => 0,
+                _ => throw new ArgumentOutOfRangeException(nameof(_correctionLevel))
+            };
+            
+            
+                var infos = lines[version*4-1-startIndex].Split(";");
+                var result = new int[infos.Length-2];
+                for (var i = 1; i < infos.Length-1; i++)
+                {
+                    result[i - 1] = Convert.ToInt32(infos[i]);
+                }
+                
+                var numberDataCodewords = result[0];
+                var numberEcCodewords = result[1] * result[2] + result[1] * result[4];
+            
+                var numberBlocksGroup1 = result[2];
+                var numberBlocksGroup2 = result[4];
+            
+                var numberEcPerBlock = result[1];
+                var numberDataPerBlockGrp1 = result[3];
+                var numberDataPerBlockGrp2= result[5];
+                var maxNumberDataPerBlock = Math.Max(numberDataPerBlockGrp1, numberDataPerBlockGrp2);
+                var decodedData = new int[numberBlocksGroup1 + numberBlocksGroup2, maxNumberDataPerBlock*8];
+                for ( var i = 0;i<decodedData.GetLength(0); i++)
+                {
+                    for (var j = 0; j < maxNumberDataPerBlock; j+=8)
+                    {
+                        
+                        for (var k = 0; k < 8; k++)
+                        {
+                            if (i+j + k >= numberDataCodewords*8) break;
+                            decodedData[i, j+k] = data[i+j + k];
+                        }
+                    }
+                }
+
+                var message = new List<int>();
+                for (var x = 0; x < decodedData.GetLength(0); x++)
+                {
+                    for (var y = 0; y < decodedData.GetLength(1); y++)
+                    {
+                        message.Add(decodedData[x,y]);
+                    }
+                }
+
+                return message.ToArray();
+
         }
         public static List<int> DataDecoding(Pixel[,] data, int quietZoneWidth, int moduleWidth)
         {
