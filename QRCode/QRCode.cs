@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Project_Info.Console_Display;
 using STH1123.ReedSolomon;
 
 namespace Project_Info.QRCode
@@ -15,6 +16,7 @@ namespace Project_Info.QRCode
         private int[] _mode;
         private static Dictionary<char, int> _alphanumericTable = new();
         private bool[,] _notFunctionModules;
+        private bool[,] functionModulesMasksOptimization;
         private int _numberDataCodewords;
         private int _numberEcCodewords;
         private List<int> _wordEncodedData;
@@ -69,7 +71,7 @@ namespace Project_Info.QRCode
             Offset = 54;
             BitRgb = 24;
 
-            _maskPattern = 7;
+            _maskPattern = 0;
             
             CreateBestMaskQRCode(message);
             
@@ -114,13 +116,18 @@ namespace Project_Info.QRCode
             CreateSeparators(Height - _quietZoneWidth - 8 * _moduleWidth, 0 + _quietZoneWidth);
             CreateFinderPatterns(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 7 * _moduleWidth);
             CreateSeparators(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 8 * _moduleWidth);
-            
-            
+
             var borderSize = (8 * 2 + (4 * _version + 1));
             var masksMatrix = new bool[borderSize, borderSize, 8];
+            functionModulesMasksOptimization = new bool[borderSize, borderSize];
+            
             CreateMaskFinderPatterns(0, 0, masksMatrix);
+            CreateMasksSeparators(0, 0);
             CreateMaskFinderPatterns(borderSize - 7, 0, masksMatrix);
+            CreateMasksSeparators(borderSize - 8, 0);
             CreateMaskFinderPatterns(0, borderSize - 7, masksMatrix);
+            CreateMasksSeparators(0, borderSize - 8);
+            
             CreateAlignmentPatternsWithMasks(masksMatrix);
             
             
@@ -133,8 +140,17 @@ namespace Project_Info.QRCode
             
             AddVersionInformationWithMasks(masksMatrix);
             
+            
+            
             EncodeStringData(message);
             AddErrorData();
+            
+            AddMasksFormatInformation(masksMatrix);
+            MaskDataEncoding(masksMatrix);
+            ApplyAllMasksMatrix(masksMatrix);
+            
+            ConsoleFunctions.DisplayBoolQRCode(masksMatrix);
+            Console.ReadKey();
         }
 
 
@@ -184,7 +200,7 @@ namespace Project_Info.QRCode
                 {
                     for (var j = col; j < 7 + col; j++)
                     {
-                        if (j < col || i < line) masksMatrix[i, j, k] = true;
+                        if (j <= col || i <= line) masksMatrix[i, j, k] = true;
                         else if (j > col + 5 ||
                                  i > line + 5) masksMatrix[i, j, k] = true;
                         else if (j >= col + 2 &&
@@ -196,7 +212,16 @@ namespace Project_Info.QRCode
             }
         }
         
-        
+        private void CreateMasksSeparators(int line, int col)
+        {
+            for (int i = line; i < 8 + line; i++)
+            {
+                for (int j = col; j < 8 + col; j++)
+                {
+                    functionModulesMasksOptimization[i, j] = true;
+                }
+            }
+        }
 
         private void CreateSeparators(int line, int col)
         {
@@ -234,18 +259,30 @@ namespace Project_Info.QRCode
         
         private void CreateMasksTimingPatterns(bool[,,] masksMatrix, int borderSize)
         {
-            for (var k = 0; k < 8; k++)
+            for (var k = 0; k < 9; k++)
             {
                 for (var line = 7; line <= borderSize - 7; line++)
                 {
+                    if (k == 8)
+                    {
+                        functionModulesMasksOptimization[line, 6] = true;
+                        continue;
+                    }
                     if (line % 2 == 0) masksMatrix[line, 6, k] = true;
                 }
             
                 for (var col = 7; col <= borderSize - 7; col++)
                 {
+                    if (k == 8)
+                    {
+                        functionModulesMasksOptimization[6, col] = true;
+                        continue;
+                    }
                     if (col % 2 == 0) masksMatrix[6, col, k] = true;
                 }
             }
+            
+            
         }
 
         private void AddDarkModule()
@@ -263,6 +300,7 @@ namespace Project_Info.QRCode
         private void AddMasksDarkModule(bool[,,] masksMatrix)
         {
             var startingLine = (4 * _version + 9);
+            functionModulesMasksOptimization[startingLine, 8] = true;
             for (var k = 0; k < 8; k++)
             {
                 masksMatrix[startingLine, 8, k] = true;
@@ -304,6 +342,46 @@ namespace Project_Info.QRCode
                 movingCol += 1 * _moduleWidth;
             }
         }
+        
+        public void AddMasksFormatInformation(bool[,,] masksMatrix)
+        {
+            var formatBinaryVector = GetFormatInfoVector();
+            const int fixedLine = 8;
+            const int fixedCol = 8;
+
+            for (int k = 0; k < 8; k++)
+            {
+                var movingCol = 0;
+                var movingLine = masksMatrix.GetLength(0) - 1;
+                var formatBinary = formatBinaryVector[k];
+                foreach (var bit in formatBinary)
+                {
+                    
+                    if (masksMatrix[movingLine, fixedCol, k]) movingLine -= 1;
+                    if (masksMatrix[fixedLine, movingCol, k]) movingCol += 1;
+
+                    masksMatrix[movingLine, fixedCol, k] = bit == 1;
+                    masksMatrix[fixedLine, movingCol, k] = bit == 1;
+                    if (k == 0)
+                    {
+                        functionModulesMasksOptimization[movingLine, fixedCol] = true;
+                        functionModulesMasksOptimization[fixedLine, movingCol] = true;
+                    }
+                    
+                    if (movingLine - 1 == (4 * _version + 9) &&
+                        movingCol == 7)
+                    {
+                        movingLine = 8;
+                        movingCol = masksMatrix.GetLength(1) - 8;
+                        continue;
+                    }
+
+                    movingLine -= 1;
+                    movingCol += 1;
+                }
+            }
+
+        }
 
 
         private void AddVersionInformation()
@@ -336,8 +414,8 @@ namespace Project_Info.QRCode
                 var line = (2 - i % 3) * _moduleWidth + ImageData.GetLength(0) - 11 * _moduleWidth - _quietZoneWidth;
                 var col = (5 - i / 3) * _moduleWidth + _quietZoneWidth;
 
-                var maskLine = 2 - i % 3 + masksMatrix.GetLength(0) - 11;
-                var maskCol = 5 - i / 3;
+                var maskLine = (2 - i % 3) + masksMatrix.GetLength(0) - 11;
+                var maskCol = (5 - i / 3);
                 for (var l = line; l < _moduleWidth + line; l++)
                 {
                     for (var c = col; c < _moduleWidth + col; c++)
@@ -348,7 +426,13 @@ namespace Project_Info.QRCode
                 }
                 for (int k = 0; k < 8; k++)
                 {
+                    if (k == 0)
+                    {
+                        functionModulesMasksOptimization[maskLine, maskCol] = true;
+                        functionModulesMasksOptimization[maskCol, maskLine] = true;
+                    }
                     masksMatrix[maskLine, maskCol, k] = bitArray[i] == 1;
+                    masksMatrix[maskCol, maskLine, k] = bitArray[i] == 1;
                 }
             }
         }
@@ -398,6 +482,10 @@ namespace Project_Info.QRCode
                 {
                     for (int j = col - 2; j <= col + 2; j++)
                     {
+                        if (k == 0)
+                        {
+                            functionModulesMasksOptimization[i, j] = true;
+                        }
                         var fakeLine = i - (line - 2);
                         var fakeCol = j - (col - 2);
                         masksMatrix[i, j, k] = fakeLine == 0 || fakeCol == 0 || fakeLine == 4 || fakeCol == 4 ||
@@ -670,6 +758,28 @@ namespace Project_Info.QRCode
             var infos = selectedLine.Split(";");
             return infos[2].Select(a => a - '0').ToArray();;
         }
+        
+        private List<int[]> GetFormatInfoVector()
+        {
+            var outputList = new List<int[]>();
+            var lines = Functions.ReadFile("../../../QRCode/qrFormat.txt").ToArray();
+            var lineIndex = _correctionLevel switch
+            {
+                1 => 0*8,
+                3 => 2*8,
+                2 => 3*8,
+                0 => 1*8,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            var selectedLines = lines[lineIndex..(lineIndex + 8)];
+            foreach (var line in selectedLines)
+            {
+                var infos = line.Split(";");
+                outputList.Add(infos[2].Select(a => a - '0').ToArray());
+            }
+            return outputList;
+        }
 
         private static int[] EncodeFormatInfo(int[] format)
         {
@@ -796,9 +906,151 @@ namespace Project_Info.QRCode
                     }
                 }
             }
-
-
         }
+        
+        private void ApplyAllMasksMatrix(bool[,,] masksMatrix)
+        {
+            for (int line = 0; line < masksMatrix.GetLength(0); line += 1) 
+            {
+                for (int col = 0; col < masksMatrix.GetLength(1); col += 1) 
+                {
+                    for (int k = 0; k < 8; k++)
+                    {
+                        if (functionModulesMasksOptimization[line, col]) continue;
+                        
+                        var condition = k switch
+                        {
+                            0 => (line + col) % 2 == 0,
+                            1 => (line) % 2 == 0,
+                            2 => (col) % 3 == 0,
+                            3 => ((line + col) % 3 == 0),
+                            4 => ((line / 2 + col / 3) % 2 == 0),
+                            5 => ((line * col) % 2 + (line * col) % 3 == 0),
+                            6 => (((line * col) % 2 + (line * col) % 3) % 2 == 0),
+                            7 => (((line * col) % 3 + (line + col) % 2) % 2 == 0),
+                            _ => throw new ArgumentException("Mask pattern not found")
+                        };
+                        
+                        masksMatrix[line, col, k] = condition ? !masksMatrix[line, col, k] : masksMatrix[line, col, k];
+                        
+                        /*masksMatrix[line, col, k] = k switch
+                        {
+                            0 => (line + col) % 2 == 0
+                                ? !masksMatrix[line, col, k]
+                                : masksMatrix[line, col, k],
+                            1 => (line) % 2 == 0
+                                ? !masksMatrix[line, col, k]
+                                : masksMatrix[line, col, k],
+                            2 => (col) % 3 == 0
+                                ? !masksMatrix[line, col, k]
+                                : masksMatrix[line, col, k],
+                            3 => ((line + col) % 3 == 0)
+                                ? !masksMatrix[line, col, k]
+                                : masksMatrix[line, col, k],
+                            4 =>((line / 2 + col / 3) % 2 == 0)
+                                ? !masksMatrix[line, col, k]
+                                : masksMatrix[line, col, k],
+                            5 => ((line * col) % 2 + (line * col) % 3 == 0)
+                                ? !masksMatrix[line, col, k]
+                                : masksMatrix[line, col, k],
+                            6 => (((line * col) % 2 + (line * col) % 3) % 2 == 0)
+                                ? !masksMatrix[line, col, k]
+                                : masksMatrix[line, col, k],
+                            7 => (((line * col) % 3 + (line + col) % 2) % 2 == 0)
+                                ? !masksMatrix[line, col, k]
+                                : masksMatrix[line, col, k],
+                            _ => throw new ArgumentException("Mask pattern not found")
+                        };*/
+                    }
+                    
+                }
+            }
+        }
+        
+        
+        private void MaskDataEncoding(bool[,,] masksMatrix)
+        {
+            var chain = _qrCodeData;
+            var upp = true;
+            var cpt = 0;
+            var skip = false;
+                for (var col = masksMatrix.GetLength(1) - 1; col > 0; col -=2)
+                {
+                    if (cpt >= chain.Length-1) break;
+                    if (upp)
+                    {
+                        if (cpt >= chain.Length-1) break;
+                        for (var line = masksMatrix.GetLength(0) - 1; line >= 0; line--)
+                        {
+                            if (cpt >= chain.Length-1) break;
+                            
+                            //SKIP TIMING PATTERNS
+                            if (col <= 7 && skip == false)
+                            {
+                                col--;
+                                skip = true;
+                            }
+                            
+                            if (!functionModulesMasksOptimization[line, col]) 
+                            {
+                                if (chain[cpt] == 1)
+                                {
+                                    for (var k = 0; k < 8; k++)
+                                    {
+                                        masksMatrix[line, col, k] = true;
+                                    }
+                                }
+                                cpt++;
+                            }
+                            
+                            if (functionModulesMasksOptimization[line, col - 1]) continue;
+                            if (chain[cpt] == 1)
+                            {
+                                for (var k = 0; k < 8; k++)
+                                {
+                                    masksMatrix[line, col - 1, k] = true;
+                                }
+                            }
+
+                            cpt++;
+                        }
+                    }
+                    else
+                    {
+                        if (cpt >= chain.Length-1) break;
+                        for (var line = 0; line <= masksMatrix.GetLength(0) - 1; line++) 
+                        {
+                            if (cpt >= chain.Length-1) break;
+                            //SKIP TIMING PATTERNS
+                            if (col <= 7 && skip == false)
+                            {
+                                col --;
+                                skip = true;
+                            }
+                            
+                            if (!functionModulesMasksOptimization[line, col]) 
+                            {
+                                for (var k = 0; k < 8; k++)
+                                {
+                                    masksMatrix[line, col, k] = chain[cpt] == 1;
+                                }
+                                cpt++;
+                            }
+
+                            if (functionModulesMasksOptimization[line, col - 1]) continue;
+                            for (var k = 0; k < 8; k++)
+                            {
+                                masksMatrix[line, col - 1, k] = chain[cpt] == 1;
+                            }
+                            cpt++;
+                        }
+                    }
+
+                    upp = !upp;
+
+                }
+        }
+        
         private void DataEncoding()
         {
             var chain = _qrCodeData;
@@ -959,6 +1211,8 @@ namespace Project_Info.QRCode
                 }
                 Console.WriteLine(" ");
         }
+        
+        
         public static void InitializeAlphaNumericTable()
         {
             var tableData = Functions.ReadFile("../../../QRCode/alphanumericTable.txt");

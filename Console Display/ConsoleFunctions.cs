@@ -17,8 +17,65 @@ namespace Project_Info.Console_Display
                 {
                     Console.Write(qrCode.ImageData[line, col].IsBlack ? "██" : "  ");
                 }
+
                 Console.WriteLine();
             }
+        }
+        
+        public static void DisplayBoolQRCode(bool[,,] qrCode)
+        {
+            for (int line = 0; line < qrCode.GetLength(0); line++)
+            {
+                for (int col = 0; col < qrCode.GetLength(1); col++)
+                {
+                    Console.Write(qrCode[line, col, 0] ? "██" : "  ");
+                }
+                Console.WriteLine();
+            }
+        }
+
+        public static void DisplayAppHeader()
+        {
+            Console.WriteLine("  _____           _           _     _____        __      ");
+            Console.WriteLine(" |  __ \\         (_)         | |   |_   _|      / _|     ");
+            Console.WriteLine(" | |__) | __ ___  _  ___  ___| |_    | |  _ __ | |_ ___  ");
+            Console.WriteLine(" |  ___/ '__/ _ \\\\| |/ _ \\/ __| __|   | | | '_ \\|  _/ _ \\ ");
+            Console.WriteLine(" | |   | | | (_) | |  __/ (__| |_   _| |_| | | | || (_) |");
+            Console.WriteLine(" |_|   |_|  \\___/| |\\___|\\___|\\__| |_____|_| |_|_| \\___/ ");
+            Console.WriteLine("                _/ |                                     ");
+            Console.WriteLine("               |__/                                      ");
+
+        }
+
+        public static void DisplayAppHeader2()
+        {
+            Console.WriteLine( "                                                                                                                                                    ");
+            Console.WriteLine( " ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄    ");
+            Console.WriteLine( "▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌   ");
+            Console.WriteLine( "▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌ ▀▀▀▀▀█░█▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀▀▀  ▀▀▀▀█░█▀▀▀▀    ");
+            Console.WriteLine( "▐░▌       ▐░▌▐░▌       ▐░▌▐░▌       ▐░▌      ▐░▌    ▐░▌          ▐░▌               ▐░▌        ");
+            Console.WriteLine( "▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌▐░▌       ▐░▌      ▐░▌    ▐░█▄▄▄▄▄▄▄▄▄ ▐░▌               ▐░▌        ");
+            Console.WriteLine( "▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░▌       ▐░▌      ▐░▌    ▐░░░░░░░░░░░▌▐░▌               ▐░▌        ");
+            Console.WriteLine( "▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀█░█▀▀ ▐░▌       ▐░▌      ▐░▌    ▐░█▀▀▀▀▀▀▀▀▀ ▐░▌               ▐░▌        ");
+            Console.WriteLine( "▐░▌          ▐░▌     ▐░▌  ▐░▌       ▐░▌      ▐░▌    ▐░▌          ▐░▌               ▐░▌        ");
+            Console.WriteLine( "▐░▌          ▐░▌      ▐░▌ ▐░█▄▄▄▄▄▄▄█░▌ ▄▄▄▄▄█░▌    ▐░█▄▄▄▄▄▄▄▄▄ ▐░█▄▄▄▄▄▄▄▄▄      ▐░▌        ");
+            Console.WriteLine( "▐░▌          ▐░▌       ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░▌    ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌     ▐░▌        ");
+            Console.WriteLine( " ▀            ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀      ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀       ▀         ");
+            Console.WriteLine( "                                                                                                                                                    ");
+            Console.WriteLine("");
+            Console.WriteLine("                   ▄▄▄▄▄▄▄▄▄▄▄  ▄▄        ▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄ ");
+            Console.WriteLine("                  ▐░░░░░░░░░░░▌▐░░▌      ▐░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌");
+            Console.WriteLine("                   ▀▀▀▀█░█▀▀▀▀ ▐░▌░▌     ▐░▌▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌");
+            Console.WriteLine("                       ▐░▌     ▐░▌▐░▌    ▐░▌▐░▌          ▐░▌       ▐░▌");
+            Console.WriteLine("                       ▐░▌     ▐░▌ ▐░▌   ▐░▌▐░█▄▄▄▄▄▄▄▄▄ ▐░▌       ▐░▌");
+            Console.WriteLine("                       ▐░▌     ▐░▌  ▐░▌  ▐░▌▐░░░░░░░░░░░▌▐░▌       ▐░▌");
+            Console.WriteLine("                       ▐░▌     ▐░▌   ▐░▌ ▐░▌▐░█▀▀▀▀▀▀▀▀▀ ▐░▌       ▐░▌");
+            Console.WriteLine("                       ▐░▌     ▐░▌    ▐░▌▐░▌▐░▌          ▐░▌       ▐░▌");
+            Console.WriteLine("                   ▄▄▄▄█░█▄▄▄▄ ▐░▌     ▐░▐░▌▐░▌          ▐░█▄▄▄▄▄▄▄█░▌");
+            Console.WriteLine("                  ▐░░░░░░░░░░░▌▐░▌      ▐░░▌▐░▌          ▐░░░░░░░░░░░▌");
+            Console.WriteLine("                   ▀▀▀▀▀▀▀▀▀▀▀  ▀        ▀▀  ▀            ▀▀▀▀▀▀▀▀▀▀▀ ");
+
+
         }
     }
 }
