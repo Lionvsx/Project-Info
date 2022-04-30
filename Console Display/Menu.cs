@@ -12,7 +12,7 @@ namespace Project_Info.Console_Display
         public Menu(List<Option> options, string description)
         {
             _options = options;
-            this._description = description;
+            _description = description;
         }
 
         public Menu()
