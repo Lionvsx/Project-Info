@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using STH1123.ReedSolomon;
 
-namespace Project_Info
+namespace Project_Info.QRCode
 {
     public class QRCode : Image
     {
@@ -430,7 +430,7 @@ namespace Project_Info
 
         private int[] GetQRAlignmentCoordinates()
         {
-            var lines = Functions.ReadFile("../../../qrSettings.txt").ToArray();
+            var lines = Functions.ReadFile("../../../QRCode/qrSettings.txt").ToArray();
             var selectedLine = lines[_version-2];
             var coordinates = selectedLine.Split(";");
             int[] result = new int[coordinates.Length-1];
@@ -444,7 +444,7 @@ namespace Project_Info
         // ReSharper disable once InconsistentNaming
         private int[] GetQRVersion()
         {
-            var lines = Functions.ReadFile("../../../qrVersion.txt").ToArray();
+            var lines = Functions.ReadFile("../../../QRCode/qrVersion.txt").ToArray();
             if (_version < 7) return Array.Empty<int>();
             var selectedLine = lines[_version-7];
             var coordinates = selectedLine.Split(";");
@@ -458,7 +458,7 @@ namespace Project_Info
 
         private void SetCodeDataLengthInfo()
         {
-            var lines = Functions.ReadFile("../../../qrCodeDataLength.txt").ToArray();
+            var lines = Functions.ReadFile("../../../QRCode/qrCodeDataLength.txt").ToArray();
             var lineIndex = _correctionLevel switch
             {
                 1 => 0,
@@ -491,7 +491,7 @@ namespace Project_Info
         
         private void GetCodeDataLength(int requiredBytes)
         {
-            var lines = Functions.ReadFile("../../../qrCodeDataLength.txt").ToArray();
+            var lines = Functions.ReadFile("../../../QRCode/qrCodeDataLength.txt").ToArray();
             var startIndex = _correctionLevel switch
             {
                 1 => 0,
@@ -602,7 +602,7 @@ namespace Project_Info
             }
 
 
-            var lines = Functions.ReadFile("../../../qrRemainderBits.txt").ToArray();
+            var lines = Functions.ReadFile("../../../QRCode/qrRemainderBits.txt").ToArray();
             var selectedLine = lines[_version - 1];
             var coordinates = selectedLine.Split(";");
             var remainder = Convert.ToInt32(coordinates[1]);
@@ -629,7 +629,7 @@ namespace Project_Info
             rse.Encode(intByteArray, errorFields);
             
             // Add remainder bits if needed
-            var lines = Functions.ReadFile("../../../qrRemainderBits.txt").ToArray();
+            var lines = Functions.ReadFile("../../../QRCode/qrRemainderBits.txt").ToArray();
             var selectedLine = lines[_version - 1];
             var coordinates = selectedLine.Split(";");
             var remainder = Convert.ToInt32(coordinates[1]);
@@ -655,7 +655,7 @@ namespace Project_Info
 
         private int[] GetFormatInfo()
         {
-            var lines = Functions.ReadFile("../../../qrFormat.txt").ToArray();
+            var lines = Functions.ReadFile("../../../QRCode/qrFormat.txt").ToArray();
             var lineIndex = _correctionLevel switch
             {
                 1 => 0*8,
@@ -961,7 +961,7 @@ namespace Project_Info
         }
         public static void InitializeAlphaNumericTable()
         {
-            var tableData = Functions.ReadFile("../../../alphanumericTable.txt");
+            var tableData = Functions.ReadFile("../../../QRCode/alphanumericTable.txt");
             foreach (var item in tableData)
             {
                 var args = item.Split(';');
@@ -1078,7 +1078,7 @@ namespace Project_Info
 
             var ErMask = new char[2];
             var data = Convert.ToString(formatData);
-            var lines = Functions.ReadFile("../../../qrFormat.txt").ToArray();
+            var lines = Functions.ReadFile("../../../QRCode/qrFormat.txt").ToArray();
             for (var i = 0; i < lines.Length; i++)
             {
                 if (data == lines[i])
@@ -1094,7 +1094,7 @@ namespace Project_Info
 
         public static int[] DecodeStringData(List<int> data, char correctionLevel, int version)
         {
-            var lines = Functions.ReadFile("../../../qrCodeDataLength.txt").ToArray();
+            var lines = Functions.ReadFile("../../../QRCode/qrCodeDataLength.txt").ToArray();
             var startIndex = correctionLevel switch
             {
                 'L' => 3,
