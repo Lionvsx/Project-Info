@@ -1053,7 +1053,7 @@ namespace Project_Info.QRCode
             {
                 for (var y = 0; y < QrWidth; y++)
                 {
-                    if (QrRead.ImageData[x+quietZoneWidth, y+quietZoneWidth].Red != im.ImageData[x + quietZoneWidth, y + quietZoneWidth].Red)
+                    if (QrRead.ImageData[x+quietZoneWidth, y+quietZoneWidth] != im.ImageData[x + quietZoneWidth, y + quietZoneWidth])
                     {
                         Data[x, y] = im.ImageData[x + quietZoneWidth, y + quietZoneWidth];
                     }
