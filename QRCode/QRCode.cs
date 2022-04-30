@@ -8,41 +8,27 @@ namespace Project_Info.QRCode
 {
     public class QRCode : Image
     {
-        private int _maskPattern;
         private int _correctionLevel;
-        private int _version;
-        private readonly int _quietZoneWidth;
-        private readonly int _moduleWidth;
         private int[] _mode;
-        private static Dictionary<char, int> _alphanumericTable = new();
-        private bool[,] _notFunctionModules;
-        private bool[,] functionModulesMasksOptimization;
-        private int _numberDataCodewords;
-        private int _numberEcCodewords;
+        private bool[,,] _masksMatrix;
         private List<int> _wordEncodedData;
-        private int[] _qrCodeData;
-        private int _numberBlocksGroup1;
-        private int _numberBlocksGroup2;
-        private int _numberEcPerBlock;
-        private int _numberDataPerBlockGrp2;
-        private int _numberDataPerBlockGrp1;
 
 
         public QRCode(int version, int quietZoneWidth, int moduleWidth, int maskPattern, int correctionLevel, string message)
         {
             var borderSize = (8 * 2 + (4 * version + 1)) * moduleWidth + 2 * quietZoneWidth;
             ImageData = new Pixel[borderSize, borderSize];
-            _notFunctionModules = new bool[borderSize, borderSize];
-            _version = version;
-            _quietZoneWidth = quietZoneWidth;
-            _moduleWidth = moduleWidth;
+            NotFunctionModules = new bool[borderSize, borderSize];
+            Version = version;
+            QuietZoneWidth = quietZoneWidth;
+            ModuleWidth = moduleWidth;
             
             Height = borderSize;
             Width = borderSize;
             Offset = 54;
             BitRgb = 24;
             
-            _maskPattern = maskPattern;
+            MaskPattern = maskPattern;
             _correctionLevel = correctionLevel;
 
             CreateEmptyQrCode();
@@ -58,41 +44,37 @@ namespace Project_Info.QRCode
         public QRCode(string message, int correctionLevel =  1)
         {
             _correctionLevel = correctionLevel;
-            _quietZoneWidth = 6;
-            _moduleWidth = 3;
+            QuietZoneWidth = 15;
+            ModuleWidth = 10;
             
             GetVersionFromString(message);
             
-            var borderSize = (8 * 2 + (4 * _version + 1)) * _moduleWidth + 2 * _quietZoneWidth;
+            var borderSize = (8 * 2 + (4 * Version + 1)) * ModuleWidth + 2 * QuietZoneWidth;
             ImageData = new Pixel[borderSize, borderSize];
-            _notFunctionModules = new bool[borderSize, borderSize];
+            NotFunctionModules = new bool[borderSize, borderSize];
             Height = borderSize;
             Width = borderSize;
             Offset = 54;
             BitRgb = 24;
 
-            _maskPattern = 0;
-            
             CreateBestMaskQRCode(message);
             
             AddFormatInformation();
 
             DataEncoding();
             Functions.FillImageWhite(ImageData);
-
-            
             AddMask();
         }
 
         private QRCode(int version, int quietZoneWidth, int moduleWidth)
         {
-            _version = version;
-            _quietZoneWidth = quietZoneWidth;
-            _moduleWidth = moduleWidth;
+            Version = version;
+            QuietZoneWidth = quietZoneWidth;
+            ModuleWidth = moduleWidth;
             
-            var borderSize = (8 * 2 + (4 * _version + 1)) * _moduleWidth + 2 * _quietZoneWidth;
+            var borderSize = (8 * 2 + (4 * Version + 1)) * ModuleWidth + 2 * QuietZoneWidth;
             ImageData = new Pixel[borderSize, borderSize];
-            _notFunctionModules = new bool[borderSize, borderSize];
+            NotFunctionModules = new bool[borderSize, borderSize];
             Height = borderSize;
             Width = borderSize;
             Offset = 54;
@@ -101,6 +83,53 @@ namespace Project_Info.QRCode
             CreateEmptyQrCode();
         }
 
+        protected QRCode()
+        {
+        }
+
+        public bool[,] IsFunctionModule { get; set; }
+
+        public int MaskPattern { get; set; }
+
+        public int CorrectionLevel
+        {
+            get => _correctionLevel;
+            set => _correctionLevel = value;
+        }
+
+        public List<int> WordEncodedData
+        {
+            get => _wordEncodedData;
+            set => _wordEncodedData = value;
+        }
+
+        public int Version { get; set; }
+
+        public int QuietZoneWidth { get; set; }
+
+        public int ModuleWidth { get; set; }
+
+        public static Dictionary<char, int> AlphanumericTable { get; set; } = new();
+
+        public bool[,] NotFunctionModules { get; set; }
+
+        public int NumberDataCodewords { get; set; }
+
+        public int NumberEcCodewords { get; set; }
+
+        public int[] QRCodeData { get; set; }
+
+        public int NumberBlocksGroup1 { get; set; }
+
+        public int NumberBlocksGroup2 { get; set; }
+
+        public int NumberEcPerBlock { get; set; }
+
+        public int NumberDataPerBlockGrp2 { get; set; }
+
+        public int NumberDataPerBlockGrp1 { get; set; }
+
+
         private void GetVersionFromString(string message)
         {
             var requiredBits = 17 + (message.Length % 2) * 6 + (message.Length / 2) * 11;
@@ -108,61 +137,62 @@ namespace Project_Info.QRCode
             GetCodeDataLength(requiredBytes);
         }
 
+        private void InitFindersAndSeparators()
+        {
+            CreateFinderPatterns(0+QuietZoneWidth, 0+QuietZoneWidth);
+            CreateSeparators(0 + QuietZoneWidth, 0 + QuietZoneWidth);
+            CreateFinderPatterns(Height - QuietZoneWidth - 7 * ModuleWidth, 0 + QuietZoneWidth);
+            CreateSeparators(Height - QuietZoneWidth - 8 * ModuleWidth, 0 + QuietZoneWidth);
+            CreateFinderPatterns(0+QuietZoneWidth, 0 + Width - QuietZoneWidth - 7 * ModuleWidth);
+            CreateSeparators(0+QuietZoneWidth, 0 + Width - QuietZoneWidth - 8 * ModuleWidth);
+        }
+        
+        private void InitMasksFinderAndSeparators()
+        {
+            var borderSize = _masksMatrix.GetLength(0);
+            CreateMaskFinderPatterns(0, 0, _masksMatrix);
+            CreateMasksSeparators(0, 0);
+            CreateMaskFinderPatterns(borderSize - 7, 0, _masksMatrix);
+            CreateMasksSeparators(borderSize - 8, 0);
+            CreateMaskFinderPatterns(0, borderSize - 7, _masksMatrix);
+            CreateMasksSeparators(0, borderSize - 8);
+        }
         private void CreateBestMaskQRCode(string message)
         {
-            CreateFinderPatterns(0+_quietZoneWidth, 0+_quietZoneWidth);
-            CreateSeparators(0 + _quietZoneWidth, 0 + _quietZoneWidth);
-            CreateFinderPatterns(Height - _quietZoneWidth - 7 * _moduleWidth, 0 + _quietZoneWidth);
-            CreateSeparators(Height - _quietZoneWidth - 8 * _moduleWidth, 0 + _quietZoneWidth);
-            CreateFinderPatterns(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 7 * _moduleWidth);
-            CreateSeparators(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 8 * _moduleWidth);
+            InitFindersAndSeparators();
+            
+            var borderSize = 8 * 2 + 4 * Version + 1;
+            _masksMatrix = new bool[borderSize, borderSize, 8];
+            IsFunctionModule = new bool[borderSize, borderSize];
 
-            var borderSize = (8 * 2 + (4 * _version + 1));
-            var masksMatrix = new bool[borderSize, borderSize, 8];
-            functionModulesMasksOptimization = new bool[borderSize, borderSize];
+            InitMasksFinderAndSeparators();
             
-            CreateMaskFinderPatterns(0, 0, masksMatrix);
-            CreateMasksSeparators(0, 0);
-            CreateMaskFinderPatterns(borderSize - 7, 0, masksMatrix);
-            CreateMasksSeparators(borderSize - 8, 0);
-            CreateMaskFinderPatterns(0, borderSize - 7, masksMatrix);
-            CreateMasksSeparators(0, borderSize - 8);
-            
-            CreateAlignmentPatternsWithMasks(masksMatrix);
-            
-            
-            
+            CreateAlignmentPatternsWithMasks(_masksMatrix);
+
             CreateTimingPatterns();
-            CreateMasksTimingPatterns(masksMatrix, borderSize);
+            CreateMasksTimingPatterns(_masksMatrix, borderSize);
             
             AddDarkModule();
-            AddMasksDarkModule(masksMatrix);
+            AddMasksDarkModule(_masksMatrix);
             
-            AddVersionInformationWithMasks(masksMatrix);
-            
-            
-            
+            AddVersionInformationWithMasks(_masksMatrix);
+
             EncodeStringData(message);
             AddErrorData();
             
-            AddMasksFormatInformation(masksMatrix);
-            MaskDataEncoding(masksMatrix);
-            ApplyAllMasksMatrix(masksMatrix);
+            AddMasksFormatInformation(_masksMatrix);
+            MaskDataEncoding(_masksMatrix);
+            ApplyAllMasksMatrix(_masksMatrix);
             
-            ConsoleFunctions.DisplayBoolQRCode(masksMatrix);
-            Console.ReadKey();
+            var resultVector = QRMaskFunctions.PerformMaskEvaluations(_masksMatrix);
+            MaskPattern = Array.IndexOf(resultVector, resultVector.Min());
         }
 
 
 
         private void CreateEmptyQrCode()
         {
-            CreateFinderPatterns(0+_quietZoneWidth, 0+_quietZoneWidth);
-            CreateSeparators(0 + _quietZoneWidth, 0 + _quietZoneWidth);
-            CreateFinderPatterns(Height - _quietZoneWidth - 7 * _moduleWidth, 0 + _quietZoneWidth);
-            CreateSeparators(Height - _quietZoneWidth - 8 * _moduleWidth, 0 + _quietZoneWidth);
-            CreateFinderPatterns(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 7 * _moduleWidth);
-            CreateSeparators(0+_quietZoneWidth, 0 + Width - _quietZoneWidth - 8 * _moduleWidth);
+            InitFindersAndSeparators();
             CreateAlignmentPatterns();
             CreateTimingPatterns();
             AddDarkModule();
@@ -175,19 +205,19 @@ namespace Project_Info.QRCode
 
         private void CreateFinderPatterns(int line, int col)
         {
-            var spacing = (_moduleWidth - 1);
-            for (int i = line; i < 7 * _moduleWidth + line; i++)
+            var spacing = (ModuleWidth - 1);
+            for (int i = line; i < 7 * ModuleWidth + line; i++)
             {
-                for (int j = col; j < 7* _moduleWidth + col; j++)
+                for (int j = col; j < 7* ModuleWidth + col; j++)
                 {
-                    if (j < col + _moduleWidth || i < line + _moduleWidth) ImageData[i, j] = new Pixel(0, 0, 0);
-                    else if (j > col + 6 * _moduleWidth - 1 ||
-                             i > line + 6 * _moduleWidth - 1) ImageData[i, j] = new Pixel(0, 0, 0);
+                    if (j < col + ModuleWidth || i < line + ModuleWidth) ImageData[i, j] = new Pixel(0, 0, 0);
+                    else if (j > col + 6 * ModuleWidth - 1 ||
+                             i > line + 6 * ModuleWidth - 1) ImageData[i, j] = new Pixel(0, 0, 0);
 
-                    else if (j >= col + 2 * _moduleWidth &&
-                        i >= line + 2 * _moduleWidth &&
-                        j <= col + 6 * _moduleWidth - 2 * _moduleWidth + spacing &&
-                        i <= line + 6 * _moduleWidth - 2 * _moduleWidth + spacing) ImageData[i, j] = new Pixel(0, 0, 0);
+                    else if (j >= col + 2 * ModuleWidth &&
+                        i >= line + 2 * ModuleWidth &&
+                        j <= col + 6 * ModuleWidth - 2 * ModuleWidth + spacing &&
+                        i <= line + 6 * ModuleWidth - 2 * ModuleWidth + spacing) ImageData[i, j] = new Pixel(0, 0, 0);
                 }
             }
         }
@@ -218,16 +248,16 @@ namespace Project_Info.QRCode
             {
                 for (int j = col; j < 8 + col; j++)
                 {
-                    functionModulesMasksOptimization[i, j] = true;
+                    IsFunctionModule[i, j] = true;
                 }
             }
         }
 
         private void CreateSeparators(int line, int col)
         {
-            for (int i = line; i < 8 * _moduleWidth + line; i++)
+            for (int i = line; i < 8 * ModuleWidth + line; i++)
             {
-                for (int j = col; j < 8 * _moduleWidth + col; j++)
+                for (int j = col; j < 8 * ModuleWidth + col; j++)
                 {
                     ImageData[i, j] ??= new Pixel(255, 255, 255);
                 }
@@ -238,20 +268,20 @@ namespace Project_Info.QRCode
 
         private void CreateTimingPatterns()
         {
-            for (int line = 7 * _moduleWidth + _quietZoneWidth; line <= Height - 7 * _moduleWidth - _quietZoneWidth; line++)
+            for (int line = 7 * ModuleWidth + QuietZoneWidth; line <= Height - 7 * ModuleWidth - QuietZoneWidth; line++)
             {
-                for (int col = 6*_moduleWidth + _quietZoneWidth; col < _moduleWidth * 7 + _quietZoneWidth; col++)
+                for (int col = 6 * ModuleWidth + QuietZoneWidth; col < ModuleWidth * 7 + QuietZoneWidth; col++) 
                 {
-                    if ((line - _quietZoneWidth) / _moduleWidth % 2 == 0) ImageData[line, col] = new Pixel(0, 0, 0);
+                    if ((line - QuietZoneWidth) / ModuleWidth % 2 == 0) ImageData[line, col] = new Pixel(0, 0, 0);
                     else ImageData[line, col] = new Pixel(255, 255, 255);
                 }
             }
-            
-            for (int col = 7 * _moduleWidth + _quietZoneWidth; col <= Height - 7 * _moduleWidth - _quietZoneWidth; col++)
+
+            for (int col = 7 * ModuleWidth + QuietZoneWidth; col <= Height - 7 * ModuleWidth - QuietZoneWidth; col++) 
             {
-                for (int line = 6*_moduleWidth + _quietZoneWidth; line < _moduleWidth * 7 + _quietZoneWidth; line++)
+                for (int line = 6 * ModuleWidth + QuietZoneWidth; line < ModuleWidth * 7 + QuietZoneWidth; line++) 
                 {
-                    if ((col - _quietZoneWidth) / _moduleWidth % 2 == 0) ImageData[line, col] = new Pixel(0, 0, 0);
+                    if ((col - QuietZoneWidth) / ModuleWidth % 2 == 0) ImageData[line, col] = new Pixel(0, 0, 0);
                     else ImageData[line, col] = new Pixel(255, 255, 255);
                 }
             }
@@ -265,7 +295,7 @@ namespace Project_Info.QRCode
                 {
                     if (k == 8)
                     {
-                        functionModulesMasksOptimization[line, 6] = true;
+                        IsFunctionModule[line, 6] = true;
                         continue;
                     }
                     if (line % 2 == 0) masksMatrix[line, 6, k] = true;
@@ -275,22 +305,20 @@ namespace Project_Info.QRCode
                 {
                     if (k == 8)
                     {
-                        functionModulesMasksOptimization[6, col] = true;
+                        IsFunctionModule[6, col] = true;
                         continue;
                     }
                     if (col % 2 == 0) masksMatrix[6, col, k] = true;
                 }
             }
-            
-            
         }
 
         private void AddDarkModule()
         {
-            var startingLine = (4 * _version + 9)*_moduleWidth +_quietZoneWidth;
-            for (int col = 8*_moduleWidth + _quietZoneWidth; col < _moduleWidth * 9 + _quietZoneWidth; col++)
+            var startingLine = (4 * Version + 9)*ModuleWidth +QuietZoneWidth;
+            for (int col = 8*ModuleWidth + QuietZoneWidth; col < ModuleWidth * 9 + QuietZoneWidth; col++)
             {
-                for (int line = startingLine; line < _moduleWidth + startingLine; line++)
+                for (int line = startingLine; line < ModuleWidth + startingLine; line++)
                 {
                     ImageData[line, col] = new Pixel(0, 0, 0);
                 }
@@ -299,8 +327,8 @@ namespace Project_Info.QRCode
         
         private void AddMasksDarkModule(bool[,,] masksMatrix)
         {
-            var startingLine = (4 * _version + 9);
-            functionModulesMasksOptimization[startingLine, 8] = true;
+            var startingLine = (4 * Version + 9);
+            IsFunctionModule[startingLine, 8] = true;
             for (var k = 0; k < 8; k++)
             {
                 masksMatrix[startingLine, 8, k] = true;
@@ -310,19 +338,19 @@ namespace Project_Info.QRCode
         public void AddFormatInformation()
         {
             var formatBinary = GetFormatInfo();
-            var fixedLine = 8 * _moduleWidth + _quietZoneWidth;
-            var fixedCol = 8 * _moduleWidth + _quietZoneWidth;
+            var fixedLine = 8 * ModuleWidth + QuietZoneWidth;
+            var fixedCol = 8 * ModuleWidth + QuietZoneWidth;
 
-            var movingCol = 0 + _quietZoneWidth;
-            var movingLine = ImageData.GetLength(0) -1 - _quietZoneWidth - (_moduleWidth - 1);
+            var movingCol = 0 + QuietZoneWidth;
+            var movingLine = ImageData.GetLength(0) -1 - QuietZoneWidth - (ModuleWidth - 1);
             
             foreach (var bit in formatBinary)
             {
-                if (ImageData[movingLine, fixedCol] != null) movingLine -= 1 * _moduleWidth;
-                if (ImageData[fixedLine, movingCol] != null) movingCol += 1 * _moduleWidth;
-                for (var l = 0; l < _moduleWidth; l++)
+                if (ImageData[movingLine, fixedCol] != null) movingLine -= 1 * ModuleWidth;
+                if (ImageData[fixedLine, movingCol] != null) movingCol += 1 * ModuleWidth;
+                for (var l = 0; l < ModuleWidth; l++)
                 {
-                    for (var c = 0; c < _moduleWidth; c++)
+                    for (var c = 0; c < ModuleWidth; c++)
                     {
                         ImageData[fixedLine + l, movingCol + c] =
                             bit == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
@@ -330,16 +358,16 @@ namespace Project_Info.QRCode
                             bit == 0 ? new Pixel(255, 255, 255) : new Pixel(0, 0, 0);
                     }
                 }
-                if (movingLine - 1 * _moduleWidth == (4 * _version + 9) * _moduleWidth + _quietZoneWidth &&
-                    movingCol == 7 * _moduleWidth + _quietZoneWidth)
+                if (movingLine - 1 * ModuleWidth == (4 * Version + 9) * ModuleWidth + QuietZoneWidth &&
+                    movingCol == 7 * ModuleWidth + QuietZoneWidth)
                 {
-                    movingLine = 8 * _moduleWidth + _quietZoneWidth;
-                    movingCol = ImageData.GetLength(1) - _quietZoneWidth - 8 * _moduleWidth;
+                    movingLine = 8 * ModuleWidth + QuietZoneWidth;
+                    movingCol = ImageData.GetLength(1) - QuietZoneWidth - 8 * ModuleWidth;
                     continue;
                 }
 
-                movingLine -= 1 * _moduleWidth;
-                movingCol += 1 * _moduleWidth;
+                movingLine -= 1 * ModuleWidth;
+                movingCol += 1 * ModuleWidth;
             }
         }
         
@@ -364,11 +392,11 @@ namespace Project_Info.QRCode
                     masksMatrix[fixedLine, movingCol, k] = bit == 1;
                     if (k == 0)
                     {
-                        functionModulesMasksOptimization[movingLine, fixedCol] = true;
-                        functionModulesMasksOptimization[fixedLine, movingCol] = true;
+                        IsFunctionModule[movingLine, fixedCol] = true;
+                        IsFunctionModule[fixedLine, movingCol] = true;
                     }
                     
-                    if (movingLine - 1 == (4 * _version + 9) &&
+                    if (movingLine - 1 == (4 * Version + 9) &&
                         movingCol == 7)
                     {
                         movingLine = 8;
@@ -380,22 +408,21 @@ namespace Project_Info.QRCode
                     movingCol += 1;
                 }
             }
-
         }
 
 
         private void AddVersionInformation()
         {
-            if (_version < 7) return;
+            if (Version < 7) return;
             var bitArray = GetQRVersion();
             for (int i = 0; i < bitArray.Length; i++)
             {
                 var newPixel = bitArray[i] == 1 ? new Pixel(0, 0, 0) : new Pixel(255, 255, 255);
-                var line = (2 - i % 3) * _moduleWidth + ImageData.GetLength(0) - 11 * _moduleWidth - _quietZoneWidth;
-                var col = (5 - i / 3) * _moduleWidth + _quietZoneWidth;
-                for (var l = line; l < _moduleWidth + line; l++)
+                var line = (2 - i % 3) * ModuleWidth + ImageData.GetLength(0) - 11 * ModuleWidth - QuietZoneWidth;
+                var col = (5 - i / 3) * ModuleWidth + QuietZoneWidth;
+                for (var l = line; l < ModuleWidth + line; l++)
                 {
-                    for (var c = col; c < _moduleWidth + col; c++)
+                    for (var c = col; c < ModuleWidth + col; c++)
                     {
                         ImageData[l, c] = newPixel;
                         ImageData[c, l] = newPixel;
@@ -406,19 +433,19 @@ namespace Project_Info.QRCode
         
         private void AddVersionInformationWithMasks(bool[,,] masksMatrix)
         {
-            if (_version < 7) return;
+            if (Version < 7) return;
             var bitArray = GetQRVersion();
             for (int i = 0; i < bitArray.Length; i++)
             {
                 var newPixel = bitArray[i] == 1 ? new Pixel(0, 0, 0) : new Pixel(255, 255, 255);
-                var line = (2 - i % 3) * _moduleWidth + ImageData.GetLength(0) - 11 * _moduleWidth - _quietZoneWidth;
-                var col = (5 - i / 3) * _moduleWidth + _quietZoneWidth;
+                var line = (2 - i % 3) * ModuleWidth + ImageData.GetLength(0) - 11 * ModuleWidth - QuietZoneWidth;
+                var col = (5 - i / 3) * ModuleWidth + QuietZoneWidth;
 
                 var maskLine = (2 - i % 3) + masksMatrix.GetLength(0) - 11;
                 var maskCol = (5 - i / 3);
-                for (var l = line; l < _moduleWidth + line; l++)
+                for (var l = line; l < ModuleWidth + line; l++)
                 {
-                    for (var c = col; c < _moduleWidth + col; c++)
+                    for (var c = col; c < ModuleWidth + col; c++)
                     {
                         ImageData[l, c] = newPixel;
                         ImageData[c, l] = newPixel;
@@ -428,8 +455,8 @@ namespace Project_Info.QRCode
                 {
                     if (k == 0)
                     {
-                        functionModulesMasksOptimization[maskLine, maskCol] = true;
-                        functionModulesMasksOptimization[maskCol, maskLine] = true;
+                        IsFunctionModule[maskLine, maskCol] = true;
+                        IsFunctionModule[maskCol, maskLine] = true;
                     }
                     masksMatrix[maskLine, maskCol, k] = bitArray[i] == 1;
                     masksMatrix[maskCol, maskLine, k] = bitArray[i] == 1;
@@ -439,32 +466,32 @@ namespace Project_Info.QRCode
 
         private void CreateAlignmentPatterns()
         {
-            var spacing = (_moduleWidth - 1);
-            if (_version < 2) return;
+            var spacing = (ModuleWidth - 1);
+            if (Version < 2) return;
             var coordinates = new List<int>(GetQRAlignmentCoordinates());
             
             var arrayOfCoordinates = Functions.DoubleIntCombinations(coordinates);
             foreach (var item in arrayOfCoordinates)
             {
-                CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);
-                CreateAlignmentPattern(item[1]*_moduleWidth + _quietZoneWidth, item[0]*_moduleWidth + _quietZoneWidth);
-                CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[0]*_moduleWidth + _quietZoneWidth);
-                CreateAlignmentPattern(item[1]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);
+                CreateAlignmentPattern(item[0]*ModuleWidth + QuietZoneWidth, item[1]*ModuleWidth + QuietZoneWidth);
+                CreateAlignmentPattern(item[1]*ModuleWidth + QuietZoneWidth, item[0]*ModuleWidth + QuietZoneWidth);
+                CreateAlignmentPattern(item[0]*ModuleWidth + QuietZoneWidth, item[0]*ModuleWidth + QuietZoneWidth);
+                CreateAlignmentPattern(item[1]*ModuleWidth + QuietZoneWidth, item[1]*ModuleWidth + QuietZoneWidth);
             }
         }
         
         private void CreateAlignmentPatternsWithMasks(bool[,,] masksMatrix)
         {
-            if (_version < 2) return;
+            if (Version < 2) return;
             var coordinates = new List<int>(GetQRAlignmentCoordinates());
             
             var arrayOfCoordinates = Functions.DoubleIntCombinations(coordinates);
             foreach (var item in arrayOfCoordinates)
             {
-                CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);
-                CreateAlignmentPattern(item[1]*_moduleWidth + _quietZoneWidth, item[0]*_moduleWidth + _quietZoneWidth);
-                CreateAlignmentPattern(item[0]*_moduleWidth + _quietZoneWidth, item[0]*_moduleWidth + _quietZoneWidth);
-                CreateAlignmentPattern(item[1]*_moduleWidth + _quietZoneWidth, item[1]*_moduleWidth + _quietZoneWidth);
+                CreateAlignmentPattern(item[0]*ModuleWidth + QuietZoneWidth, item[1]*ModuleWidth + QuietZoneWidth);
+                CreateAlignmentPattern(item[1]*ModuleWidth + QuietZoneWidth, item[0]*ModuleWidth + QuietZoneWidth);
+                CreateAlignmentPattern(item[0]*ModuleWidth + QuietZoneWidth, item[0]*ModuleWidth + QuietZoneWidth);
+                CreateAlignmentPattern(item[1]*ModuleWidth + QuietZoneWidth, item[1]*ModuleWidth + QuietZoneWidth);
                 CreateMasksAlignmentPattern(item[0], item[1], masksMatrix);
                 CreateMasksAlignmentPattern(item[1], item[0], masksMatrix);
                 CreateMasksAlignmentPattern(item[0], item[0], masksMatrix);
@@ -484,7 +511,7 @@ namespace Project_Info.QRCode
                     {
                         if (k == 0)
                         {
-                            functionModulesMasksOptimization[i, j] = true;
+                            IsFunctionModule[i, j] = true;
                         }
                         var fakeLine = i - (line - 2);
                         var fakeCol = j - (col - 2);
@@ -497,14 +524,14 @@ namespace Project_Info.QRCode
         
         public void CreateAlignmentPattern(int col, int line)
         {
-            var spacing = (_moduleWidth - 1);
+            var spacing = (ModuleWidth - 1);
             if (ImageData[line, col] != null) return;
-            for (int i = line - 2 * _moduleWidth; i <= line + 2 * _moduleWidth + spacing; i++)
+            for (int i = line - 2 * ModuleWidth; i <= line + 2 * ModuleWidth + spacing; i++)
             {
-                for (int j = col - 2 * _moduleWidth; j <= col + 2 * _moduleWidth + spacing; j++)
+                for (int j = col - 2 * ModuleWidth; j <= col + 2 * ModuleWidth + spacing; j++)
                 {
-                    var fakeLine = (i - (line - 2 * _moduleWidth)) / _moduleWidth;
-                    var fakeCol = (j - (col - 2 * _moduleWidth)) / _moduleWidth;
+                    var fakeLine = (i - (line - 2 * ModuleWidth)) / ModuleWidth;
+                    var fakeCol = (j - (col - 2 * ModuleWidth)) / ModuleWidth;
 
                     ImageData[i, j] = fakeLine == 0 || fakeCol == 0 || fakeLine == 4 || fakeCol == 4
                         ?
@@ -516,10 +543,10 @@ namespace Project_Info.QRCode
             }
         }
 
-        private int[] GetQRAlignmentCoordinates()
+        public int[] GetQRAlignmentCoordinates()
         {
             var lines = Functions.ReadFile("../../../QRCode/qrSettings.txt").ToArray();
-            var selectedLine = lines[_version-2];
+            var selectedLine = lines[Version-2];
             var coordinates = selectedLine.Split(";");
             int[] result = new int[coordinates.Length-1];
             for (var i = 1; i < coordinates.Length; i++)
@@ -533,8 +560,8 @@ namespace Project_Info.QRCode
         private int[] GetQRVersion()
         {
             var lines = Functions.ReadFile("../../../QRCode/qrVersion.txt").ToArray();
-            if (_version < 7) return Array.Empty<int>();
-            var selectedLine = lines[_version-7];
+            if (Version < 7) return Array.Empty<int>();
+            var selectedLine = lines[Version-7];
             var coordinates = selectedLine.Split(";");
             int[] result = new int[coordinates[1].Length];
             for (var i = 0; i < coordinates[1].Length; i++)
@@ -556,7 +583,7 @@ namespace Project_Info.QRCode
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            var selectedLine = lines[(_version - 1) * 4 + lineIndex];
+            var selectedLine = lines[(Version - 1) * 4 + lineIndex];
             
             var infos = selectedLine.Split(";");
             var result = new int[infos.Length-2];
@@ -565,15 +592,15 @@ namespace Project_Info.QRCode
                 result[i - 1] = Convert.ToInt32(infos[i]);
             }
 
-            _numberDataCodewords = result[0];
-            _numberEcCodewords = result[1] * result[2] + result[1] * result[4];
+            NumberDataCodewords = result[0];
+            NumberEcCodewords = result[1] * result[2] + result[1] * result[4];
             
-            _numberBlocksGroup1 = result[2];
-            _numberBlocksGroup2 = result[4];
+            NumberBlocksGroup1 = result[2];
+            NumberBlocksGroup2 = result[4];
             
-            _numberEcPerBlock = result[1];
-            _numberDataPerBlockGrp1 = result[3];
-            _numberDataPerBlockGrp2 = result[5];
+            NumberEcPerBlock = result[1];
+            NumberDataPerBlockGrp1 = result[3];
+            NumberDataPerBlockGrp2 = result[5];
 
         }
         
@@ -595,7 +622,7 @@ namespace Project_Info.QRCode
                 if (index > 40 * 4) throw new ArgumentOutOfRangeException(nameof(requiredBytes));
                 if (Convert.ToInt32(infos[1]) < requiredBytes) continue;
                 
-                _version = Convert.ToInt32(infos[0].Split("-")[0]);
+                Version = Convert.ToInt32(infos[0].Split("-")[0]);
                 
                 var result = new int[infos.Length-2];
                 for (var i = 1; i < infos.Length-1; i++)
@@ -603,15 +630,15 @@ namespace Project_Info.QRCode
                     result[i - 1] = Convert.ToInt32(infos[i]);
                 }
                 
-                _numberDataCodewords = result[0];
-                _numberEcCodewords = result[1] * result[2] + result[1] * result[4];
+                NumberDataCodewords = result[0];
+                NumberEcCodewords = result[1] * result[2] + result[1] * result[4];
             
-                _numberBlocksGroup1 = result[2];
-                _numberBlocksGroup2 = result[4];
+                NumberBlocksGroup1 = result[2];
+                NumberBlocksGroup2 = result[4];
             
-                _numberEcPerBlock = result[1];
-                _numberDataPerBlockGrp1 = result[3];
-                _numberDataPerBlockGrp2 = result[5];
+                NumberEcPerBlock = result[1];
+                NumberDataPerBlockGrp1 = result[3];
+                NumberDataPerBlockGrp2 = result[5];
                 
 
                 break;
@@ -623,17 +650,17 @@ namespace Project_Info.QRCode
         {
             var field = new GenericGF(285, 256, 0);
             var rse = new ReedSolomonEncoder(field);
-            var maxNumberDataPerBlock = Math.Max(_numberDataPerBlockGrp1, _numberDataPerBlockGrp2);
+            var maxNumberDataPerBlock = Math.Max(NumberDataPerBlockGrp1, NumberDataPerBlockGrp2);
             
-            var encodedData = new int[_numberBlocksGroup1 + _numberBlocksGroup2, maxNumberDataPerBlock];
-            var errorEncodedData = new int[_numberBlocksGroup1 + _numberBlocksGroup2, _numberEcPerBlock];
+            var encodedData = new int[NumberBlocksGroup1 + NumberBlocksGroup2, maxNumberDataPerBlock];
+            var errorEncodedData = new int[NumberBlocksGroup1 + NumberBlocksGroup2, NumberEcPerBlock];
 
             // Error Data Group 1
-            for (int i = 0; i < _numberBlocksGroup1; i++)
+            for (int i = 0; i < NumberBlocksGroup1; i++)
             {
-                var errorFields = _numberEcPerBlock;
+                var errorFields = NumberEcPerBlock;
                 
-                var dataBlock = ByteEncodedData[(i * _numberDataPerBlockGrp1)..((i + 1) * _numberDataPerBlockGrp1)];
+                var dataBlock = ByteEncodedData[(i * NumberDataPerBlockGrp1)..((i + 1) * NumberDataPerBlockGrp1)];
                 var zerosArray = Enumerable.Repeat(0, errorFields);
 
                 var byteArray = dataBlock.Concat(zerosArray).ToArray();
@@ -641,20 +668,20 @@ namespace Project_Info.QRCode
                 
                 for (var j = 0; j < maxNumberDataPerBlock; j++)
                 {
-                    encodedData[i, j] = j >= _numberDataPerBlockGrp1 ? -1 : byteArray[j];
+                    encodedData[i, j] = j >= NumberDataPerBlockGrp1 ? -1 : byteArray[j];
                 }
-                for (var j = 0; j < _numberEcPerBlock; j++)
+                for (var j = 0; j < NumberEcPerBlock; j++)
                 {
-                    errorEncodedData[i, j] = byteArray[j + _numberDataPerBlockGrp1];
+                    errorEncodedData[i, j] = byteArray[j + NumberDataPerBlockGrp1];
                 }
             }
             
             //Error data group 2
-            for (int i = 0; i < _numberBlocksGroup2; i++)
+            for (int i = 0; i < NumberBlocksGroup2; i++)
             {
-                var errorFields = _numberEcPerBlock;
+                var errorFields = NumberEcPerBlock;
                 
-                var dataBlock = ByteEncodedData[(i * _numberDataPerBlockGrp2 + _numberBlocksGroup1 * _numberDataPerBlockGrp1)..((i + 1) * _numberDataPerBlockGrp2 + _numberBlocksGroup1 * _numberDataPerBlockGrp1)];
+                var dataBlock = ByteEncodedData[(i * NumberDataPerBlockGrp2 + NumberBlocksGroup1 * NumberDataPerBlockGrp1)..((i + 1) * NumberDataPerBlockGrp2 + NumberBlocksGroup1 * NumberDataPerBlockGrp1)];
                 var zerosArray = Enumerable.Repeat(0, errorFields);
 
                 var byteArray = dataBlock.Concat(zerosArray).ToArray();
@@ -662,11 +689,11 @@ namespace Project_Info.QRCode
                 
                 for (var j = 0; j < maxNumberDataPerBlock; j++)
                 {
-                    encodedData[i + _numberBlocksGroup1, j] = j >= _numberDataPerBlockGrp2 ? -1 : byteArray[j];
+                    encodedData[i + NumberBlocksGroup1, j] = j >= NumberDataPerBlockGrp2 ? -1 : byteArray[j];
                 }
-                for (var j = 0; j < _numberEcPerBlock; j++)
+                for (var j = 0; j < NumberEcPerBlock; j++)
                 {
-                    errorEncodedData[i + _numberBlocksGroup1, j] = byteArray[j + _numberDataPerBlockGrp2];
+                    errorEncodedData[i + NumberBlocksGroup1, j] = byteArray[j + NumberDataPerBlockGrp2];
                 }
             }
             
@@ -674,16 +701,16 @@ namespace Project_Info.QRCode
             
             for (var i = 0; i < maxNumberDataPerBlock; i++)
             {
-                for (var j = 0; j < _numberBlocksGroup1 + _numberBlocksGroup2; j++)
+                for (var j = 0; j < NumberBlocksGroup1 + NumberBlocksGroup2; j++)
                 {
                     if (encodedData[j, i] == -1) continue;
                     qrFinalData.Add(encodedData[j, i]);
                 }
             }
             
-            for (var i = 0; i < _numberEcPerBlock; i++)
+            for (var i = 0; i < NumberEcPerBlock; i++)
             {
-                for (var j = 0; j < _numberBlocksGroup1 + _numberBlocksGroup2; j++)
+                for (var j = 0; j < NumberBlocksGroup1 + NumberBlocksGroup2; j++)
                 {
                     qrFinalData.Add(errorEncodedData[j, i]);
                 }
@@ -691,7 +718,7 @@ namespace Project_Info.QRCode
 
 
             var lines = Functions.ReadFile("../../../QRCode/qrRemainderBits.txt").ToArray();
-            var selectedLine = lines[_version - 1];
+            var selectedLine = lines[Version - 1];
             var coordinates = selectedLine.Split(";");
             var remainder = Convert.ToInt32(coordinates[1]);
             
@@ -700,7 +727,7 @@ namespace Project_Info.QRCode
             {
                 bitArray.Add(0);
             }
-            _qrCodeData = bitArray.ToArray();
+            QRCodeData = bitArray.ToArray();
         }
         
         private void GetErrorData()
@@ -709,7 +736,7 @@ namespace Project_Info.QRCode
             var rse = new ReedSolomonEncoder(field);
             //Max byte value = 255 (OxFF)
             
-            var errorFields = _numberEcCodewords;
+            var errorFields = NumberEcCodewords;
             
             var zerosArray = Enumerable.Repeat((int) 0, errorFields);
             var byteArray = ByteEncodedData.Concat(zerosArray).ToArray();
@@ -718,7 +745,7 @@ namespace Project_Info.QRCode
             
             // Add remainder bits if needed
             var lines = Functions.ReadFile("../../../QRCode/qrRemainderBits.txt").ToArray();
-            var selectedLine = lines[_version - 1];
+            var selectedLine = lines[Version - 1];
             var coordinates = selectedLine.Split(";");
             var remainder = Convert.ToInt32(coordinates[1]);
             
@@ -728,13 +755,13 @@ namespace Project_Info.QRCode
                 bitArray.Add(0);
             }
 
-            _qrCodeData = bitArray.ToArray();
+            QRCodeData = bitArray.ToArray();
         }
 
 
         private int[] GetFormatInfoOld()
         {
-            var maskBinary = Functions.ConvertIntToBinaryArray(_maskPattern);
+            var maskBinary = Functions.ConvertIntToBinaryArray(MaskPattern);
             if (maskBinary.Length < 3) maskBinary = Functions.UnShift(maskBinary, 3);
             var correctionLevelBinary = Functions.ConvertIntToBinaryArray(_correctionLevel);
             if (correctionLevelBinary.Length < 2) correctionLevelBinary = Functions.UnShift(correctionLevelBinary, 2);
@@ -753,7 +780,7 @@ namespace Project_Info.QRCode
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            var selectedLine = lines[lineIndex + _maskPattern];
+            var selectedLine = lines[lineIndex + MaskPattern];
             
             var infos = selectedLine.Split(";");
             return infos[2].Select(a => a - '0').ToArray();;
@@ -810,21 +837,21 @@ namespace Project_Info.QRCode
             var wordLength = word.Length;
 
             var wordLengthBits = Functions.IntToDesiredLengthBit(wordLength,
-                _version < 10 ? 9 : _version < 27 ? 11 : 13);
+                Version < 10 ? 9 : Version < 27 ? 11 : 13);
             result.AddRange(wordLengthBits);
 
             for (var i = 0; i < word.Length; i+=2)
             {
                 if (i % 2 == 0 && i != word.Length - 1)
                 {
-                    _alphanumericTable.TryGetValue(word[i], out var highValue);
-                    _alphanumericTable.TryGetValue(word[i + 1], out var lowValue);
+                    AlphanumericTable.TryGetValue(word[i], out var highValue);
+                    AlphanumericTable.TryGetValue(word[i + 1], out var lowValue);
 
                     result.AddRange(Functions.IntToDesiredLengthBit(highValue * 45 + lowValue, 11));
                 }
                 if (i == wordLength - 1 && wordLength % 2 == 1)
                 {
-                    _alphanumericTable.TryGetValue(word[i], out var value);
+                    AlphanumericTable.TryGetValue(word[i], out var value);
                     result.AddRange(Functions.IntToDesiredLengthBit(value, 6));
                 }
             }
@@ -832,7 +859,7 @@ namespace Project_Info.QRCode
             
             //ADD Terminator
             var count = 0;
-            while (result.Count < _numberDataCodewords * 8 && count < 4)
+            while (result.Count < NumberDataCodewords * 8 && count < 4)
             {
                 result.Add(0);
                 count++;
@@ -842,12 +869,12 @@ namespace Project_Info.QRCode
                 ? Functions.Pad(result.ToArray(), result.Count + (8 - result.Count % 8)).ToList()
                 : result;
             //Pad bytes if string still too short
-            if (result.Count < _numberDataCodewords * 8)
+            if (result.Count < NumberDataCodewords * 8)
             {
                 var byte1 = Functions.IntToDesiredLengthBit(236, 8);
                 var byte2 = Functions.IntToDesiredLengthBit(17, 8);
 
-                var iterations = (_numberDataCodewords * 8 - result.Count);
+                var iterations = (NumberDataCodewords * 8 - result.Count);
                 for (int i = 0; i < iterations/8; i++)
                 {
                     result.AddRange(i % 2 == 0 ? byte1 : byte2);
@@ -858,50 +885,49 @@ namespace Project_Info.QRCode
             _wordEncodedData = result;
         }
 
-        private void AddMask()
+        public void AddMask()
         {
             //Iterate through each pixel of the ImageData matrix
-            for (int line = 0 + _quietZoneWidth; line < ImageData.GetLength(0); line+=_moduleWidth)
+            for (int line = 0 + QuietZoneWidth; line < ImageData.GetLength(0) - QuietZoneWidth; line+=ModuleWidth)
             {
-                for (int col = 0 + _quietZoneWidth; col < ImageData.GetLength(1); col+=_moduleWidth)
+                for (int col = 0 + QuietZoneWidth; col < ImageData.GetLength(1) - QuietZoneWidth; col+=ModuleWidth)
                 {
-                    int fLine = (line - _quietZoneWidth)/_moduleWidth;
-                    int fCol = (col - _quietZoneWidth)/_moduleWidth;
-                    if (_notFunctionModules[line, col])
+                    int fLine = (line - QuietZoneWidth)/ModuleWidth;
+                    int fCol = (col - QuietZoneWidth)/ModuleWidth;
+
+                    if (IsFunctionModule[(line - QuietZoneWidth) / ModuleWidth, (col - QuietZoneWidth) / ModuleWidth]) continue;
+                    for (var i = line; i < line + ModuleWidth; i++)
                     {
-                        for (var i = line; i < line + _moduleWidth; i++)
+                        for (var j = col; j < col + ModuleWidth; j++)
                         {
-                            for (var j = col; j < col + _moduleWidth; j++)
+                            ImageData[i, j] = MaskPattern switch
                             {
-                                ImageData[i, j] = _maskPattern switch
-                                {
-                                    0 => (fLine + fCol) % 2 == 0
-                                        ? Functions.InvertPixel(ImageData[i, j])
-                                        : ImageData[i, j],
-                                    1 => (fLine) % 2 == 0
-                                        ? Functions.InvertPixel(ImageData[i, j])
-                                        : ImageData[i, j],
-                                    2 => (fCol) % 3 == 0
-                                        ? Functions.InvertPixel(ImageData[i, j])
-                                        : ImageData[i, j],
-                                    3 => ((fLine + fCol) % 3 == 0)
-                                        ? Functions.InvertPixel(ImageData[i, j])
-                                        : ImageData[i, j],
-                                    4 =>((fLine / 2 + fCol / 3) % 2 == 0)
-                                        ? Functions.InvertPixel(ImageData[i, j])
-                                        : ImageData[i, j],
-                                    5 => ((fLine * fCol) % 2 + (fLine * fCol) % 3 == 0)
-                                        ? Functions.InvertPixel(ImageData[i, j])
-                                        : ImageData[i, j],
-                                    6 => (((fLine * fCol) % 2 + (fLine * fCol) % 3) % 2 == 0)
-                                        ? Functions.InvertPixel(ImageData[i, j])
-                                        : ImageData[i, j],
-                                    7 => (((fLine * fCol) % 3 + (fLine + fCol) % 2) % 2 == 0)
-                                        ? Functions.InvertPixel(ImageData[i, j])
-                                        : ImageData[i, j],
-                                    _ => throw new ArgumentException("Mask pattern not found")
-                                };
-                            }
+                                0 => (fLine + fCol) % 2 == 0
+                                    ? Functions.InvertPixel(ImageData[i, j])
+                                    : ImageData[i, j],
+                                1 => (fLine) % 2 == 0
+                                    ? Functions.InvertPixel(ImageData[i, j])
+                                    : ImageData[i, j],
+                                2 => (fCol) % 3 == 0
+                                    ? Functions.InvertPixel(ImageData[i, j])
+                                    : ImageData[i, j],
+                                3 => ((fLine + fCol) % 3 == 0)
+                                    ? Functions.InvertPixel(ImageData[i, j])
+                                    : ImageData[i, j],
+                                4 =>((fLine / 2 + fCol / 3) % 2 == 0)
+                                    ? Functions.InvertPixel(ImageData[i, j])
+                                    : ImageData[i, j],
+                                5 => ((fLine * fCol) % 2 + (fLine * fCol) % 3 == 0)
+                                    ? Functions.InvertPixel(ImageData[i, j])
+                                    : ImageData[i, j],
+                                6 => (((fLine * fCol) % 2 + (fLine * fCol) % 3) % 2 == 0)
+                                    ? Functions.InvertPixel(ImageData[i, j])
+                                    : ImageData[i, j],
+                                7 => (((fLine * fCol) % 3 + (fLine + fCol) % 2) % 2 == 0)
+                                    ? Functions.InvertPixel(ImageData[i, j])
+                                    : ImageData[i, j],
+                                _ => throw new ArgumentException("Mask pattern not found")
+                            };
                         }
                     }
                 }
@@ -916,7 +942,7 @@ namespace Project_Info.QRCode
                 {
                     for (int k = 0; k < 8; k++)
                     {
-                        if (functionModulesMasksOptimization[line, col]) continue;
+                        if (IsFunctionModule[line, col]) continue;
                         
                         var condition = k switch
                         {
@@ -970,7 +996,7 @@ namespace Project_Info.QRCode
         
         private void MaskDataEncoding(bool[,,] masksMatrix)
         {
-            var chain = _qrCodeData;
+            var chain = QRCodeData;
             var upp = true;
             var cpt = 0;
             var skip = false;
@@ -991,7 +1017,7 @@ namespace Project_Info.QRCode
                                 skip = true;
                             }
                             
-                            if (!functionModulesMasksOptimization[line, col]) 
+                            if (!IsFunctionModule[line, col]) 
                             {
                                 if (chain[cpt] == 1)
                                 {
@@ -1003,7 +1029,7 @@ namespace Project_Info.QRCode
                                 cpt++;
                             }
                             
-                            if (functionModulesMasksOptimization[line, col - 1]) continue;
+                            if (IsFunctionModule[line, col - 1]) continue;
                             if (chain[cpt] == 1)
                             {
                                 for (var k = 0; k < 8; k++)
@@ -1028,7 +1054,7 @@ namespace Project_Info.QRCode
                                 skip = true;
                             }
                             
-                            if (!functionModulesMasksOptimization[line, col]) 
+                            if (!IsFunctionModule[line, col]) 
                             {
                                 for (var k = 0; k < 8; k++)
                                 {
@@ -1037,7 +1063,7 @@ namespace Project_Info.QRCode
                                 cpt++;
                             }
 
-                            if (functionModulesMasksOptimization[line, col - 1]) continue;
+                            if (IsFunctionModule[line, col - 1]) continue;
                             for (var k = 0; k < 8; k++)
                             {
                                 masksMatrix[line, col - 1, k] = chain[cpt] == 1;
@@ -1053,27 +1079,22 @@ namespace Project_Info.QRCode
         
         private void DataEncoding()
         {
-            var chain = _qrCodeData;
-            for (int k = 0; k < chain.Length; k++)
-            {
-                Console.Write(chain[k]);
-                if ((k +1)%8 == 0) Console.Write(" ");
-            } 
+            var chain = QRCodeData;
             var upp = true;
             var cpt = 0;
             var skip = false;
-                for (var col = Width - 1-_quietZoneWidth; col >_quietZoneWidth; col -=2*_moduleWidth)
+                for (var col = Width - 1-QuietZoneWidth; col >QuietZoneWidth; col -=2*ModuleWidth)
                 {
                     if (cpt >= chain.Length-1) break;
                     if (upp)
                     {
                         if (cpt >= chain.Length-1) break;
-                        for (var line = Height - 1-_quietZoneWidth; line >= _quietZoneWidth; line-=_moduleWidth)
+                        for (var line = Height - 1-QuietZoneWidth; line >= QuietZoneWidth; line-=ModuleWidth)
                         {
                             if (cpt >= chain.Length-1) break;
-                            if (col <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
+                            if (col <= 7 * ModuleWidth + QuietZoneWidth && skip == false)
                             {
-                                col -= _moduleWidth;
+                                col -= ModuleWidth;
                                 skip = true;
                             }
                             
@@ -1082,24 +1103,24 @@ namespace Project_Info.QRCode
 
                                 if (chain[cpt] == 0)
                                 {
-                                    for (var i = 0; i < _moduleWidth; i++)
+                                    for (var i = 0; i < ModuleWidth; i++)
                                     {
-                                        for (var j = 0; j < _moduleWidth; j++)
+                                        for (var j = 0; j < ModuleWidth; j++)
                                         {
                                             ImageData[line-i, col-j] = new Pixel(255, 255, 255);
-                                            _notFunctionModules[line-i, col-j] = true;
+                                            NotFunctionModules[line-i, col-j] = true;
                                         }
                                     }
                                 }
 
                                 if (chain[cpt] == 1)
                                 {
-                                    for (var i = 0; i < _moduleWidth; i++)
+                                    for (var i = 0; i < ModuleWidth; i++)
                                     {
-                                        for (var j = 0; j < _moduleWidth; j++)
+                                        for (var j = 0; j < ModuleWidth; j++)
                                         {
                                             ImageData[line-i, col-j] = new Pixel(0, 0, 0);
-                                            _notFunctionModules[line-i, col-j] = true;
+                                            NotFunctionModules[line-i, col-j] = true;
                                         }
                                     }
                                 }
@@ -1107,15 +1128,15 @@ namespace Project_Info.QRCode
                                 cpt++;
                             }
 
-                            if (ImageData[line, col - _moduleWidth] != null) continue;
+                            if (ImageData[line, col - ModuleWidth] != null) continue;
                             if (chain[cpt] == 0)
                             {
-                                for (var i = 0; i < _moduleWidth; i++)
+                                for (var i = 0; i < ModuleWidth; i++)
                                 {
-                                    for (var j = 0; j < _moduleWidth; j++)
+                                    for (var j = 0; j < ModuleWidth; j++)
                                     {
-                                        ImageData[line - i, col - _moduleWidth - j] = new Pixel(255, 255, 255);
-                                        _notFunctionModules[line - i, col - _moduleWidth - j] = true;
+                                        ImageData[line - i, col - ModuleWidth - j] = new Pixel(255, 255, 255);
+                                        NotFunctionModules[line - i, col - ModuleWidth - j] = true;
                                     }
                                 }
 
@@ -1123,12 +1144,12 @@ namespace Project_Info.QRCode
 
                             if (chain[cpt] == 1)
                             {
-                                for (var i = 0; i < _moduleWidth; i++)
+                                for (var i = 0; i < ModuleWidth; i++)
                                 {
-                                    for (var j = 0; j < _moduleWidth; j++)
+                                    for (var j = 0; j < ModuleWidth; j++)
                                     {
-                                        ImageData[line - i, col - _moduleWidth - j] = new Pixel(0, 0, 0);
-                                        _notFunctionModules[line - i, col - j - _moduleWidth] = true;
+                                        ImageData[line - i, col - ModuleWidth - j] = new Pixel(0, 0, 0);
+                                        NotFunctionModules[line - i, col - j - ModuleWidth] = true;
                                     }
                                 }
 
@@ -1140,50 +1161,50 @@ namespace Project_Info.QRCode
                     else
                     {
                         if (cpt >= chain.Length-1) break;
-                        for (var line = _quietZoneWidth; line <=Height-1-_quietZoneWidth; line+= _moduleWidth)
+                        for (var line = QuietZoneWidth; line <=Height-1-QuietZoneWidth; line+= ModuleWidth)
                         {
                             if (cpt >= chain.Length-1) break;
-                            if (col <= 7 * _moduleWidth + _quietZoneWidth && skip == false)
+                            if (col <= 7 * ModuleWidth + QuietZoneWidth && skip == false)
                             {
-                                col -= _moduleWidth;
+                                col -= ModuleWidth;
                                 skip = true;
                             }
                             if (ImageData[line,col] == null)
                             {
                                 if (chain[cpt] == 0)
                                 {
-                                    for (var i = 0; i < _moduleWidth; i++)
+                                    for (var i = 0; i < ModuleWidth; i++)
                                     {
-                                        for (var j = 0; j < _moduleWidth; j++)
+                                        for (var j = 0; j < ModuleWidth; j++)
                                         {
                                             ImageData[line+i, col-j] = new Pixel(255, 255, 255);
-                                            _notFunctionModules[line+i, col-j] = true;
+                                            NotFunctionModules[line+i, col-j] = true;
                                         }
                                     }
                                 }
                                 if (chain[cpt] == 1)
                                 {
-                                    for (var i = 0; i < _moduleWidth; i++)
+                                    for (var i = 0; i < ModuleWidth; i++)
                                     {
-                                        for (var j = 0; j < _moduleWidth; j++)
+                                        for (var j = 0; j < ModuleWidth; j++)
                                         {
                                             ImageData[line+i, col-j] = new Pixel(0, 0, 0);
-                                            _notFunctionModules[line+i, col-j] = true;
+                                            NotFunctionModules[line+i, col-j] = true;
                                         }
                                     }
                                 }
                                 cpt++;
                             }
 
-                            if (ImageData[line, col - _moduleWidth] != null) continue;
+                            if (ImageData[line, col - ModuleWidth] != null) continue;
                             if (chain[cpt] == 0)
                             {
-                                for (var i = 0; i < _moduleWidth; i++)
+                                for (var i = 0; i < ModuleWidth; i++)
                                 {
-                                    for (var j = 0; j < _moduleWidth; j++)
+                                    for (var j = 0; j < ModuleWidth; j++)
                                     {
-                                        ImageData[line + i, col - _moduleWidth - j] = new Pixel(255, 255, 255);
-                                        _notFunctionModules[line + i, col - _moduleWidth - j] = true;
+                                        ImageData[line + i, col - ModuleWidth - j] = new Pixel(255, 255, 255);
+                                        NotFunctionModules[line + i, col - ModuleWidth - j] = true;
                                     }
                                 }
 
@@ -1191,12 +1212,12 @@ namespace Project_Info.QRCode
 
                             if (chain[cpt] == 1)
                             {
-                                for (var i = 0; i < _moduleWidth; i++)
+                                for (var i = 0; i < ModuleWidth; i++)
                                 {
-                                    for (var j = 0; j < _moduleWidth; j++)
+                                    for (var j = 0; j < ModuleWidth; j++)
                                     {
-                                        ImageData[line + i, col - _moduleWidth - j] = new Pixel(0, 0, 0);
-                                        _notFunctionModules[line + i, col - _moduleWidth - j] = true;
+                                        ImageData[line + i, col - ModuleWidth - j] = new Pixel(0, 0, 0);
+                                        NotFunctionModules[line + i, col - ModuleWidth - j] = true;
                                     }
                                 }
 
@@ -1209,7 +1230,6 @@ namespace Project_Info.QRCode
                     upp = !upp;
 
                 }
-                Console.WriteLine(" ");
         }
         
         
@@ -1219,7 +1239,7 @@ namespace Project_Info.QRCode
             foreach (var item in tableData)
             {
                 var args = item.Split(';');
-                _alphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
+                AlphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
             }
         }
         private static void AddMaskTemp(Pixel[,] im, int quietZoneWidth, int moduleWidth, int mask)
@@ -1237,37 +1257,35 @@ namespace Project_Info.QRCode
                         {
                             for (var j = col; j < col + moduleWidth; j++)
                             {
-                                if(im[i, j]!=null)
+                                if (im[i, j] == null) continue;
+                                im[i, j] = mask switch
                                 {
-                                    im[i, j] = mask switch
-                                    {
-                                        0 => (fLine + fCol) % 2 == 0
-                                            ? Functions.InvertPixel(im[i, j])
-                                            : im[i, j],
-                                        1 => (fLine) % 2 == 0
-                                            ? Functions.InvertPixel(im[i, j])
-                                            : im[i, j],
-                                        2 => (fCol) % 3 == 0
-                                            ? Functions.InvertPixel(im[i, j])
-                                            : im[i, j],
-                                        3 => ((fLine + fCol) % 3 == 0)
-                                            ? Functions.InvertPixel(im[i, j])
-                                            : im[i, j],
-                                        4 => ((fLine / 2 + fCol / 3) % 2 == 0)
-                                            ? Functions.InvertPixel(im[i, j])
-                                            : im[i, j],
-                                        5 => ((fLine * fCol) % 2 + (fLine * fCol) % 3 == 0)
-                                            ? Functions.InvertPixel(im[i, j])
-                                            : im[i, j],
-                                        6 => (((fLine * fCol) % 2 + (fLine * fCol) % 3) % 2 == 0)
-                                            ? Functions.InvertPixel(im[i, j])
-                                            : im[i, j],
-                                        7 => (((fLine * fCol) % 3 + (fLine + fCol) % 2) % 2 == 0)
-                                            ? Functions.InvertPixel(im[i, j])
-                                            : im[i, j],
-                                        _ => throw new ArgumentException("Mask pattern not found")
-                                    };
-                                }
+                                    0 => (fLine + fCol) % 2 == 0
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    1 => (fLine) % 2 == 0
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    2 => (fCol) % 3 == 0
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    3 => ((fLine + fCol) % 3 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    4 => ((fLine / 2 + fCol / 3) % 2 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    5 => ((fLine * fCol) % 2 + (fLine * fCol) % 3 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    6 => (((fLine * fCol) % 2 + (fLine * fCol) % 3) % 2 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    7 => (((fLine * fCol) % 3 + (fLine + fCol) % 2) % 2 == 0)
+                                        ? Functions.InvertPixel(im[i, j])
+                                        : im[i, j],
+                                    _ => throw new ArgumentException("Mask pattern not found")
+                                };
                             }
                         }
                     }
@@ -1301,7 +1319,7 @@ namespace Project_Info.QRCode
             var format = ExtractFormatInfo(im, QrRead);
             var correctionLevel = format[0];
             var mask = Convert.ToInt32(format[1]);
-            QrRead._maskPattern = Convert.ToInt32(format[1]);
+            QrRead.MaskPattern = Convert.ToInt32(format[1]);
             var Data = new Pixel[QrWidth, QrWidth];
             for (var x = 0; x < QrWidth; x++)
             {
@@ -1355,30 +1373,30 @@ namespace Project_Info.QRCode
         }
         public static string[] ExtractFormatInfo(Image im, QRCode QrRead)
         {
-            var fixedLine = 8 * QrRead._moduleWidth + QrRead._quietZoneWidth;
-            var movingCol = 0 + QrRead._quietZoneWidth;
+            var fixedLine = 8 * QrRead.ModuleWidth + QrRead.QuietZoneWidth;
+            var movingCol = 0 + QrRead.QuietZoneWidth;
             int[] formatData = new int[15];
             var skip1 = false;
             var skip2 = false;
             var temp = 0;
             for (var i = 0; i < formatData.Length; i++)
             {
-                if (movingCol+i*QrRead._moduleWidth == 9 * QrRead._moduleWidth + QrRead._quietZoneWidth && skip1 == false)
+                if (movingCol+i*QrRead.ModuleWidth == 9 * QrRead.ModuleWidth + QrRead.QuietZoneWidth && skip1 == false)
                 {
-                    movingCol = im.ImageData.GetLength(1)- 7 * QrRead._moduleWidth - QrRead._quietZoneWidth;
+                    movingCol = im.ImageData.GetLength(1)- 7 * QrRead.ModuleWidth - QrRead.QuietZoneWidth;
                     skip1 = true;
                     temp = i;
 
                 }
-                if (movingCol+i*QrRead._moduleWidth == 6 * QrRead._moduleWidth + QrRead._quietZoneWidth && skip2 == false)
+                if (movingCol+i*QrRead.ModuleWidth == 6 * QrRead.ModuleWidth + QrRead.QuietZoneWidth && skip2 == false)
                 {
-                    movingCol += QrRead._moduleWidth;
+                    movingCol += QrRead.ModuleWidth;
                     skip2 = true;
                     
 
                 }
 
-                if (im.ImageData[fixedLine, movingCol + (i-temp)*QrRead._moduleWidth].Red == 255) formatData[i] = 0;
+                if (im.ImageData[fixedLine, movingCol + (i-temp)*QrRead.ModuleWidth].Red == 255) formatData[i] = 0;
                 else formatData[i] = 1;
                 
                 
@@ -1547,6 +1565,87 @@ namespace Project_Info.QRCode
                     upp = !upp;
                 }
                 return chain;
+        }
+        
+        public void InitFunctionModulesMatrix()
+        {
+            IsFunctionModule = new bool[Width, Height];
+            CreateFinderAndSeparatorZones(0, 0);
+            CreateFinderAndSeparatorZones(Width - 8, 0);
+            CreateFinderAndSeparatorZones(0, Width - 8);
+            CreateTimingPatternsZone();
+            AddDarkModuleZone();
+            CreateVersionInfoZone();
+            CreateAlignmentPatternZones();
+        }
+
+
+        private void CreateAlignmentPatternZones()
+        {
+            if (Version < 2) return;
+            var coordinates = new List<int>(GetQRAlignmentCoordinates());
+            var arrayOfCoordinates = Functions.DoubleIntCombinations(coordinates);
+            foreach (var item in arrayOfCoordinates)
+            {
+                CreateAlignmentPatternZone(item[0], item[1]);
+                CreateAlignmentPatternZone(item[1], item[0]);
+                CreateAlignmentPatternZone(item[0], item[0]);
+                CreateAlignmentPatternZone(item[1], item[1]);
+            }
+        }
+        
+        private void CreateAlignmentPatternZone(int line, int col)
+        {
+            if (IsFunctionModule[line, col]) return;
+            for (var i = line - 2; i <= line + 2; i++)
+            {
+                for (var j = col - 2; j <= col + 2; j++)
+                {
+                    IsFunctionModule[i, j] = true;
+                }
+            }
+        }
+
+        private void CreateVersionInfoZone()
+        {
+            if (Version < 7) return;
+            for (var i = 0; i < 18; i++)
+            {
+                var maskLine = (2 - i % 3) + Height - 11;
+                var maskCol = (5 - i / 3);
+                IsFunctionModule[maskLine, maskCol] = true;
+                IsFunctionModule[maskCol, maskLine] = true;
+            }
+        }
+
+        private void CreateTimingPatternsZone()
+        {
+            for (var line = 7; line <= Height - 7; line++)
+            {
+                IsFunctionModule[line, 6] = true;
+            }
+        
+            for (var col = 7; col <= Width - 7; col++)
+            {
+                IsFunctionModule[6, col] = true;
+            }
+        }
+
+        private void AddDarkModuleZone()
+        {
+            var startingLine = (4 * Version + 9);
+            IsFunctionModule[startingLine, 8] = true;
+        }
+
+        private void CreateFinderAndSeparatorZones(int line, int col)
+        {
+            for (var i = line; i < 8 + line; i++)
+            {
+                for (var j = col; j < 8 + col; j++)
+                {
+                    IsFunctionModule[i, j] = true;
+                }
+            }
         }
     
     }
