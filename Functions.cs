@@ -379,6 +379,11 @@ namespace Project_Info
 
             return lines.ToArray().Reverse();
         }
+        
+        public static bool CheckArrayEquality<T>(IEnumerable<T> first, IEnumerable<T> second) {
+            return first.SequenceEqual(second);
+        }
+
 
         public static void WriteFile(IEnumerable<string> lines, string path)
         {
