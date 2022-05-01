@@ -5,20 +5,20 @@ using OpenAI_API;
 
 namespace Project_Info
 {
-    public class OpenAI
+    public static class OpenAI
     {
-        public OpenAIAPI Api { get; set; }
+        private static OpenAIAPI _api;
 
-        private readonly string _apiKey = "";
+        private const string _apiKey = "";
 
-        public OpenAI()
+        public static void Login()
         {
-            Api = new OpenAIAPI(_apiKey, "text-davinci-002");
+            _api = new OpenAIAPI(_apiKey, "text-davinci-002");
         }
 
-        public async void SteamInConsole(string input)
+        public static async void SteamInConsole(string input)
         {
-            await Api.Completions.StreamCompletionAsync(
+            await _api.Completions.StreamCompletionAsync(
                 new CompletionRequest(
                     $"Ceci est une conversation entre un humain et l'IA d'un programme de traitement d'image. L'IA est créative, gentille et très formelle. L'IA doit renseigner l'utilisateur sur ce que le programme peut faire.\n" +
                     $"Un example de ce que l'humain peut demander est de générer un qr code pour accéder au site de google.com." +
@@ -31,15 +31,15 @@ namespace Project_Info
 
 
 
-        public async Task<CompletionResult> Completion(string input)
+        public static async Task<CompletionResult> Completion(string input)
         {
-            return await Api.Completions.CreateCompletionAsync(new CompletionRequest(input, temperature: 0.1,
+            return await _api.Completions.CreateCompletionAsync(new CompletionRequest(input, temperature: 0.1,
                 max_tokens: 1000, presencePenalty: 0.1, frequencyPenalty: 0.1));
         }
 
-        public async Task<bool> YesNoToCommand(string input)
+        public static async Task<bool> YesNoToCommand(string input)
         {
-            var task = await Api.Completions.CreateCompletionAsync(new CompletionRequest(
+            var task = await _api.Completions.CreateCompletionAsync(new CompletionRequest(
                 $"Convert this text to a programmatic command:\n" +
                 $"Example: oui\nOutput: true\n" +
                 $"Example: Je veux\nOutput: true\n" +
@@ -50,14 +50,14 @@ namespace Project_Info
             return result.Contains("true");
         }
         
-        public bool AskForYesOrNo(string input)
+        public static bool AskForYesOrNo(string input)
         {
             var test = YesNoToCommand(input);
             return test.Result;
         }
-        public async void TextToCommand(string input)
+        public static async void TextToCommand(string input)
         {
-            var task = await Api.Completions.CreateCompletionAsync(new CompletionRequest(
+            var task = await _api.Completions.CreateCompletionAsync(new CompletionRequest(
                 $"Convert this text to a programmatic command:\n\n" +
                 $"Example: Genère un qr code qui va sur le site de Google\nOutput: create-qrcode|https://google.com/\n\n" +
                 $"Example: Genère un qr code qui envoie salut au 0620330631\nOutput: create-qrcode|SMSTO:0620330631:salut\n\n" +
