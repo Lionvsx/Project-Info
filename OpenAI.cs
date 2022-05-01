@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using OpenAI_API;
 
@@ -39,13 +40,20 @@ namespace Project_Info
         public async Task<bool> YesNoToCommand(string input)
         {
             var task = await Api.Completions.CreateCompletionAsync(new CompletionRequest(
-                $"Convert this text to a programmatic command:\n\n" +
-                $"Example: oui\nOutput: true\n\n" +
-                $"Example: Je veux\nOutput: true\n\n" +
-                $"Example: non\nOutput: false\n\n" +
+                $"Convert this text to a programmatic command:\n" +
+                $"Example: oui\nOutput: true\n" +
+                $"Example: Je veux\nOutput: true\n" +
+                $"Example: non\nOutput: false\n" +
                 $"{input}:",
                 temperature: 0, max_tokens: 200, presencePenalty: 0, frequencyPenalty: 0.2));
-            return bool.Parse(task.ToString());
+            var result = task.ToString();
+            return result.Contains("true");
+        }
+        
+        public bool AskForYesOrNo(string input)
+        {
+            var test = YesNoToCommand(input);
+            return test.Result;
         }
         public async void TextToCommand(string input)
         {
