@@ -8,7 +8,7 @@ namespace Project_Info
     {
         public OpenAIAPI Api { get; set; }
 
-        private readonly string _apiKey = "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";
+        private readonly string _apiKey = "";
 
         public OpenAI()
         {
@@ -18,21 +18,58 @@ namespace Project_Info
         public async void SteamInConsole(string input)
         {
             await Api.Completions.StreamCompletionAsync(
-                new CompletionRequest($"This is a conversation with an AI assistant. The assistant is friendly, creative and very helpful:\nHuman: {input}\nAI:", 200, 0.4, presencePenalty: 0.1, frequencyPenalty: 0.1, stopSequences: "Human:"),
+                new CompletionRequest(
+                    $"Ceci est une conversation entre un humain et l'IA d'un programme de traitement d'image. L'IA est créative, gentille et très formelle. L'IA doit renseigner l'utilisateur sur ce que le programme peut faire.\n" +
+                    $"Un example de ce que l'humain peut demander est de générer un qr code pour accéder au site de google.com." +
+                    $"Voici la liste complète de ce que peut faire le programme : " +
+                    $":\nHuman: {input}\nIA:",
+                    200, 0.4, presencePenalty: 0.1, frequencyPenalty: 0.1, stopSequences: "Human:"),
                 res => Console.Write(res.ToString()));
             Console.WriteLine();
         }
-        
-        
+
+
 
         public async Task<CompletionResult> Completion(string input)
         {
-            return await Api.Completions.CreateCompletionAsync(new CompletionRequest(input, temperature: 0.1, max_tokens: 1000, presencePenalty: 0.1, frequencyPenalty: 0.1));
+            return await Api.Completions.CreateCompletionAsync(new CompletionRequest(input, temperature: 0.1,
+                max_tokens: 1000, presencePenalty: 0.1, frequencyPenalty: 0.1));
         }
 
+        public async void YesNoToCommand(string input)
+        {
+            var task = await Api.Completions.CreateCompletionAsync(new CompletionRequest(
+                $"Convert this text to a programmatic command:\n\n" +
+                $"Example: oui\nOutput: true\n\n" +
+                $"Example: Je veux\nOutput: true\n\n" +
+                $"Example: non\nOutput: false\n\n" +
+                $"{input}:",
+                temperature: 0, max_tokens: 200, presencePenalty: 0, frequencyPenalty: 0.2));
+            Console.WriteLine(task.ToString());
+        }
         public async void TextToCommand(string input)
         {
-            
+            var task = await Api.Completions.CreateCompletionAsync(new CompletionRequest(
+                $"Convert this text to a programmatic command:\n\n" +
+                $"Example: Genère un qr code qui va sur le site de Google\nOutput: create-qrcode|https://google.com/\n\n" +
+                $"Example: Genère un qr code qui envoie salut au 0620330631\nOutput: create-qrcode|SMSTO:0620330631:salut\n\n" +
+                $"Example: Genère une image fractale\nOutput: create-fractale\n\n" +
+                $"Example: Genère un qr code qui contient la phrase Il aime les pommes avec une taille de module de 3\nOutput: create-qrcode|Il aime les pommes|moduleWidth=3\n\n" +
+                $"Example: Genère un qr code qui contient le texte Je joue au cartes avec un module de 2 et un niveau de correction Q\nOutput: create-qrcode|Je joue au cartes|moduleWidth=2|ecLevel=Q\n\n" +
+                $"Example: Lire un qr code\nOutput: read-qrcode|get-path\n\n" +
+                $"Example: Lire le qr code qrTest7.bmp\nOutput: read-qrcode|../../../ImageInput/qrTest7.bmp\n\n" +
+                $"Example: Lire le qr code Hello\nOutput: read-qrcode|../../../ImageInput/Hello.bmp\n\n" +
+                $"Example: Faire une rotation de l'image Patate de 36 degrés\nOutput: rotate-image|../../../ImageInput/Patate.bmp|radians = (36*pi)/180\n\n" +
+                $"Example: Agrandir l'image Bonjour d'un facteur de 2.5\nOutput: maximize|../../../ImageInput/Bonjour.bmp|factor=2.5\n\n" +
+                $"Example: Agrandir l'image Bonjour d'un facteur de 2,5\nOutput: maximize|../../../ImageInput/Bonjour.bmp|factor=2.5\n\n" +
+                $"Example: Rétrécir l'image Tomate d'un facteur de 3.7\nOutput: minimize|../../../ImageInput/Tomate.bmp|factor=3.7\n\n" +
+                $"Example: Appliquer une matrice de convolution floue sur l'image Montre\nOutput: convolution-filter|../../../ImageInput/Montre.bmp|kernel = Flou\n\n" +
+                $"Example: Appliquer une matrice de convolution de détection des contours sur l'image Pièce\nOutput: convolution-filter|../../../ImageInput/Pièce.bmp|kernel = Contour\n\n" +
+                $"Example: Appliquer une matrice de convolution de détection des contours sur l'image test1 en utilisant sobel\nOutput: convolution-filter-sobel|../../../ImageInput/test1.bmp\n\n" +
+                $"Example: Transformer l'image Couteau en noir et blanc\nOutput: convert-to-grey|../../../ImageInput/Couteau.bmp\n\n" +
+                $"{input}:",
+                temperature: 0, max_tokens: 200, presencePenalty: 0, frequencyPenalty: 0.2));
+            Console.WriteLine(task.ToString());
         }
     }
 }
