@@ -36,7 +36,7 @@ namespace Project_Info
                 max_tokens: 1000, presencePenalty: 0.1, frequencyPenalty: 0.1));
         }
 
-        public async void YesNoToCommand(string input)
+        public async Task<bool> YesNoToCommand(string input)
         {
             var task = await Api.Completions.CreateCompletionAsync(new CompletionRequest(
                 $"Convert this text to a programmatic command:\n\n" +
@@ -45,7 +45,7 @@ namespace Project_Info
                 $"Example: non\nOutput: false\n\n" +
                 $"{input}:",
                 temperature: 0, max_tokens: 200, presencePenalty: 0, frequencyPenalty: 0.2));
-            Console.WriteLine(task.ToString());
+            return bool.Parse(task.ToString());
         }
         public async void TextToCommand(string input)
         {
