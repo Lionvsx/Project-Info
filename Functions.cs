@@ -24,7 +24,9 @@ namespace Project_Info
             //Métadonnées du fichier
             byte[] sign = {myfile[0],myfile[1]};
             var test = new byte[]{66, 77};
-            if (sign != test) throw new ArgumentOutOfRangeException();
+            if (sign[0] != test[0]) throw new ArgumentOutOfRangeException();
+            if (sign[1] != test[1]) throw new ArgumentOutOfRangeException();
+
             byte[] fsize = {myfile[2], myfile[3], myfile[4], myfile[5]};
             byte[] off = {myfile[10], myfile[11], myfile[12], myfile[13]};
             //Métadonnées de l'image

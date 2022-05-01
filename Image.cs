@@ -7,8 +7,17 @@ namespace Project_Info
         public Image()
         {
         }
-        
-        
+
+        public Image(int height, int width)
+        {
+            Height = height;
+            Width = width;
+            Type = "BMP";
+            Offset = 54;
+            BitRgb = 24;
+            ImageData = Functions.CreateBlackImage(height, width);
+        }
+
         public string Type { get; set; }
 
         public int Size => Height * Width * 3 + Offset;
