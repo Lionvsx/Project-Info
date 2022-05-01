@@ -51,8 +51,15 @@ namespace Project_Info.QRCode
         {
             var desiredLength = Version < 10 ? 9 : Version < 27 ? 11 : 13;
             var word = new List<char>();
-            
-            for (var index = 4 + desiredLength; index < WordEncodedData.Count - 11; index+=11)
+            var wordlength = 0;
+            for (var x = 0; x <desiredLength; x++)
+            {
+                if (WordEncodedData[x+4]==1) 
+                    wordlength += Convert.ToInt32(Math.Pow(2, desiredLength - x-1));
+            }
+
+            var padding = WordEncodedData.Count - (wordlength / 2) * 11 - (wordlength % 2) * 6 - 4 - desiredLength;
+            for (var index = 4 + desiredLength; index < (wordlength / 2) * 11+desiredLength+4; index+=11)
             {
                 var value = 0;
                 for (var i = 0; i <=10; i++)
@@ -66,7 +73,18 @@ namespace Project_Info.QRCode
                 word.Add(highValue);
                 word.Add(lowValue);
             }
+            if(wordlength%2!=0)
+            {
+                var remainder = 0;
+                for (var j = 0; j < (wordlength % 2) * 6; j++)
+                {
+                    if (WordEncodedData[j + (wordlength / 2) * 11 + desiredLength + 4] == 1)
+                        remainder += Convert.ToInt32(Math.Pow(2, 5 - j));
+                }
 
+                var Value = AlphanumericTable.FirstOrDefault(x => x.Value == remainder).Key;
+                word.Add(Value);
+            }
             foreach (var item in word)
             {
                 Console.Write(item);
