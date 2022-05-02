@@ -1,7 +1,10 @@
 using System;
 
 namespace Project_Info.QRCode
-{
+{  
+    /// <summary>
+    /// Cette classe contient toutes les methodes liées à la selection automatique du masque pour la création de notre Qr COde
+    /// </summary>
     public static class QRMaskFunctions
     {
 

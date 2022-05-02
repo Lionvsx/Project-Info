@@ -6,6 +6,10 @@ using STH1123.ReedSolomon;
 
 namespace Project_Info.QRCode
 {
+    /// <summary>
+    /// Cette classe contient toutes les methodes lié a l'ecriture d'un QR COde
+    /// La classe est lié a la classe Image.
+    /// </summary>
     public class QRCode : Image
     {
         private int _correctionLevel;
@@ -42,6 +46,13 @@ namespace Project_Info.QRCode
             AddMask();
         }
 
+        /// <summary>
+        /// Cette methode est un constructeur de QR Code avce en parametre le message et le niveau de protection de dernier en parametre
+        /// la version sera automitequement choisi en fonction de la longueur du message
+        /// la bordure sera fixe à 15 et la taille d'un module  à 10 pixels
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="correctionLevel"></param>
         public QRCode(string message, int correctionLevel =  1)
         {
             _correctionLevel = correctionLevel;
@@ -66,6 +77,14 @@ namespace Project_Info.QRCode
             Functions.FillImageWhite(ImageData);
             AddMask();
         }
+        /// <summary>
+        /// Cette methode est un constructeur de QR Code avce en parametre le message, la taille de module et le niveau de protection de dernier en parametre
+        /// la version sera automitequement choisi en fonction de la longueur du message
+        /// la bordure sera fixe à 15 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="correctionLevel"></param>
+        /// <param name="moduleWidth"></param>
         public QRCode(string message, int correctionLevel , int moduleWidth)
         {
             _correctionLevel = correctionLevel;
@@ -138,7 +157,7 @@ namespace Project_Info.QRCode
 
         public int NumberDataPerBlockGrp1 { get; set; }
 
-
+            
         private void GetVersionFromString(string message)
         {
             var requiredBits = 17 + (message.Length % 2) * 6 + (message.Length / 2) * 11;
@@ -579,7 +598,10 @@ namespace Project_Info.QRCode
             }
             return result;
         }
-
+        /// <summary>
+        /// Cette méthode permet de récuperer les paramtres sur les  blocs et les groupes pour notre configuration de QR Code
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private void SetCodeDataLengthInfo()
         {
             var lines = Functions.ReadFile("../../../QRCode/qrCodeDataLength.txt").ToArray();
@@ -654,7 +676,9 @@ namespace Project_Info.QRCode
             }
         }
 
-
+        /// <summary>
+        /// Cette methode arrange la data selon les groupes et les blocs et y a joute l'error data calculer avec ReedSolomon
+        /// </summary>
         private void AddErrorData()
         {
             var field = new GenericGF(285, 256, 0);
@@ -837,7 +861,10 @@ namespace Project_Info.QRCode
             
             return Functions.XOR(mask, format.Concat(division).ToArray());
         }
-
+        /// <summary>
+        /// Cette methode transforme le message alphanumerique en tableau de binaire et ajoute le padding necessaire
+        /// </summary>
+        /// <param name="word"></param>
         private void EncodeStringData(string word)
         {
             word = word.ToUpper();
@@ -893,7 +920,10 @@ namespace Project_Info.QRCode
 
             _wordEncodedData = result;
         }
-
+        /// <summary>
+        /// Cette méthode applique le mask necessaire a notre QR COde
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         public void AddMask()
         {
             //Iterate through each pixel of the ImageData matrix
@@ -1002,7 +1032,10 @@ namespace Project_Info.QRCode
             }
         }
         
-        
+        /// <summary>
+        /// Cette methode ecrit la data sur le QR Code pour les masques
+        /// </summary>
+        /// <param name="masksMatrix"></param>
         private void MaskDataEncoding(bool[,,] masksMatrix)
         {
             var chain = QRCodeData;
@@ -1085,7 +1118,9 @@ namespace Project_Info.QRCode
 
                 }
         }
-        
+        /// <summary>
+        /// Cette methode ecrit la data sur le QR Code
+        /// </summary>
         private void DataEncoding()
         {
             var chain = QRCodeData;

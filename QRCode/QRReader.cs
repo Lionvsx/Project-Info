@@ -4,8 +4,16 @@ using System.Linq;
 
 namespace Project_Info.QRCode
 {
+    /// <summary>
+     /// Cette classe regroupe toute les methodes lié à la lecture de QR Code
+     /// La classe est lié a la classe QRCode
+     /// </summary>
     public class QRReader : QRCode
     {
+        /// <summary>
+        /// Constructeur de la classe qui permet d'utiliser toutes les methodes de la classe et ainsi de d'afficher le message du QR code mis en parametre via le math
+        /// </summary>
+        /// <param name="path"></param>
         public QRReader(string path)
         {
             var image = Functions.ReadImage(path);
@@ -30,7 +38,9 @@ namespace Project_Info.QRCode
             CleanWordData();
             GetWordData();
         }
-
+        /// <summary>
+        /// Cette methode permet d'isoler de la caine des binaire la data contenant le message à trouver
+        /// </summary>
         private void CleanWordData()
         {
             for (int i = WordEncodedData.Count - 8; i >= 0; i-=8)
@@ -46,7 +56,9 @@ namespace Project_Info.QRCode
                 }
             }
         }
-
+        /// <summary>
+        /// Cettte methode permet de retranscrire la chaine de binaire en un string d'alphanumerques et de l'afficher
+        /// </summary>
         private void GetWordData()
         {
             var desiredLength = Version < 10 ? 9 : Version < 27 ? 11 : 13;
@@ -90,7 +102,10 @@ namespace Project_Info.QRCode
                 Console.Write(item);
             }
         }
-
+        /// <summary>
+        /// Cette méthode permet de réaranger la chaine de binaire contenat la data selon l'arangement des blocs et des groupes
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private void DecodeData()
         {
             var lines = Functions.ReadFile("../../../QRCode/qrCodeDataLength.txt").ToArray();
@@ -157,7 +172,9 @@ namespace Project_Info.QRCode
             
             WordEncodedData = Functions.ConvertByteArrayToBitArray(message.ToArray()).ToList();
         }
-
+        /// <summary>
+        /// Cette methode permet d'extraire une chaine de binaire contenant le message du QR codes initil
+        /// </summary>
         private void ReadData()
         {
             var binaryData = new List<int>();
@@ -222,7 +239,10 @@ namespace Project_Info.QRCode
                 }
             QRCodeData = binaryData.ToArray();
         }
-
+        /// <summary>
+        /// Cette méthode permet d'obtenir les informations concerant le niveau de correction ainsi que le masque afin de pouvoir par la suite traduire correctement la data
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
         private void DiscoverFormatInfo()
         {
             var formatString = DiscoverFormatInfoString();
@@ -245,7 +265,10 @@ namespace Project_Info.QRCode
             }
             
         }
-        
+        /// <summary>
+        /// Cette methode permet d'extraire les informations de format, le masque et la correction level, du QR COde initiale
+        /// </summary>
+        /// <returns></returns>
         public string DiscoverFormatInfoString()
         {
             const int fixedLine = 8;
@@ -276,7 +299,9 @@ namespace Project_Info.QRCode
 
             return binaryFormat;
         }
-
+        /// <summary>
+        /// Cette méthode permet de transformer la module width du QR Code initial en  afin de faciliter la réalisation du rest des methodes
+        /// </summary>
         private void DiscoverModuleWidthAndMinimized()
         {
             var moduleWidth = 0;
@@ -288,7 +313,9 @@ namespace Project_Info.QRCode
             if (moduleWidth == 1) return; 
             Minimize(moduleWidth);
         }
-
+        /// <summary>
+        /// Cette methode permet de supprimer la bordure mise autour du QR COde initaile afi de faciliter la réalisation du rest de methodes de la classe
+        /// </summary>
         private void DiscoverAndDeleteQuietZone()
         {
             var localQuietZoneWidth = 0;

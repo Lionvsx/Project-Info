@@ -2,6 +2,9 @@ using System;
 
 namespace Project_Info.Console_Display
 {
+    /// <summary>
+    /// Cette classe regroupe l'ensemble des méthodes que l'iA devra réalise avce une gestion des inputs et des outputs
+    /// </summary>
     public static class ConsoleFunctions
     {
         public static void ClearConsole()
