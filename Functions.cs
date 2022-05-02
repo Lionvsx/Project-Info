@@ -149,8 +149,9 @@ namespace Project_Info
                 for (var j = 0; j < im.ImageData.GetLength(1); j++)
                 {
                     file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Blue)));
-                    file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Red)));
                     file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Green)));
+                    file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Red)));
+                    
                     
                 }
 

@@ -79,7 +79,7 @@ public static class Commands
     {
         var im = Functions.ReadImage(path);
         im.RotateAngle(Convert.ToInt32(degre) * Math.PI / 180);
-        Functions.WriteImage(im, "../../../images/Rtation.bmp");
+        Functions.WriteImage(im, "../../../images/Rotation.bmp");
     }
 
     public static void MirrorCOmmand(string path)
