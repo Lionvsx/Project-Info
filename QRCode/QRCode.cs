@@ -69,7 +69,7 @@ namespace Project_Info.QRCode
         public QRCode(string message, int correctionLevel , int moduleWidth)
         {
             _correctionLevel = correctionLevel;
-            QuietZoneWidth = 15;
+            QuietZoneWidth = 3;
             ModuleWidth = moduleWidth;
             
             GetVersionFromString(message);
