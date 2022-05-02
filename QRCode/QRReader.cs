@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static System.Console;
 
 namespace Project_Info.QRCode
 {
@@ -99,8 +100,9 @@ namespace Project_Info.QRCode
             }
             foreach (var item in word)
             {
-                Console.Write(item);
+                Write(item);
             }
+            WriteLine();
         }
         /// <summary>
         /// Cette méthode permet de réaranger la chaine de binaire contenat la data selon l'arangement des blocs et des groupes

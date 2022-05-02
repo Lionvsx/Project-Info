@@ -38,7 +38,7 @@ public static class Commands
         };
         var moduleWidthIndex = Convert.ToInt32(moduleWidth);
         var qrTest = new QRCode.QRCode(message,correctionIndex,moduleWidthIndex );
-        if(consoleWrite) ConsoleFunctions.DisplayQRCode(qrTest);
+        if(consoleWrite) ConsoleFunctions.DisplayBoolQRCodeMatrix(qrTest._masksMatrix, qrTest.MaskPattern);
         Functions.WriteImage(qrTest, "../../../images/QRCode.bmp");
     }
 

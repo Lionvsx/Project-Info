@@ -9,10 +9,18 @@ namespace Project_Info.Console_Display
         public static void Initialize()
         {
             OpenAI.Login();
-            OpenAI.SteamInConsole("Ecris un tutoriel afin d'utiliser ce programme"); 
+            ConsoleFunctions.ClearConsole();
+            WriteLine("Bienvenue dans notre projet info de traitement d'image\n" +
+                                  "Je suis une intelligence artificielle qui vous aidera à naviguer dans notre programme\n" +
+                                  "Toutes les images que vous souhaiterez utiliser dans notre programme sont à placer dans le dossier /ImageInput/ à la racine du projet\n" +
+                                  "Toutes les images créees par le programme pourront être trouvées dans le dossier /images/ à la racine du projet\n" +
+                                  "Afin de naviguer dans le programme, parlez moi dans la console comme si vous parliez à un assistant intelligent !\n" +
+                                  "Vous pouvez par exemple me demander qu'est ce que le programme est capable de faire." +
+                                  "\nBonne navigation !\n");
         }
         public static void Invoke()
         {
+            WriteLine("Veuillez entrez votre requête :");
             while (true)
             {
                 var prompt = ReadLine();
