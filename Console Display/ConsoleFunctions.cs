@@ -57,7 +57,7 @@ namespace Project_Info.Console_Display
             Console.WriteLine();
         }
 
-        public static void DisplayAppHeader()
+        public static void DisplayAppHeader1()
         {
             Console.WriteLine("  _____           _           _     _____        __      ");
             Console.WriteLine(" |  __ \\         (_)         | |   |_   _|      / _|     ");
@@ -72,6 +72,7 @@ namespace Project_Info.Console_Display
 
         public static void DisplayAppHeader2()
         {
+            Console.WriteLine( "                                                                                                                                                    ");
             Console.WriteLine( "                                                                                                                                                    ");
             Console.WriteLine( " ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄    ");
             Console.WriteLine( "▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌   ");
@@ -97,6 +98,8 @@ namespace Project_Info.Console_Display
             Console.WriteLine("                   ▄▄▄▄█░█▄▄▄▄ ▐░▌     ▐░▐░▌▐░▌          ▐░█▄▄▄▄▄▄▄█░▌");
             Console.WriteLine("                  ▐░░░░░░░░░░░▌▐░▌      ▐░░▌▐░▌          ▐░░░░░░░░░░░▌");
             Console.WriteLine("                   ▀▀▀▀▀▀▀▀▀▀▀  ▀        ▀▀  ▀            ▀▀▀▀▀▀▀▀▀▀▀ ");
+            Console.WriteLine( "                                                                                                                                                    ");
+            Console.WriteLine( "                                                                                                                                                    ");
 
 
         }

@@ -35,6 +35,7 @@ namespace Project_Info.QRCode
             EncodeStringData(message);
             GetErrorData();
             DataEncoding();
+            InitFunctionModulesMatrix();
             
             
             Functions.FillImageWhite(ImageData);
@@ -1242,58 +1243,6 @@ namespace Project_Info.QRCode
                 AlphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
             }
         }
-        private static void AddMaskTemp(Pixel[,] im, int quietZoneWidth, int moduleWidth, int mask)
-        {
-            //Iterate through each pixel of the ImageData matrix
-            for (int line = 0 + quietZoneWidth; line < im.GetLength(0); line+=moduleWidth)
-            {
-                for (int col = 0 + quietZoneWidth; col < im.GetLength(1); col+=moduleWidth)
-                {
-                    int fLine = (line - quietZoneWidth)/moduleWidth;
-                    int fCol = (col - quietZoneWidth)/moduleWidth;
-                    if (im[fLine, fCol] != null) ;
-                    {
-                        for (var i = line; i < line + moduleWidth; i++)
-                        {
-                            for (var j = col; j < col + moduleWidth; j++)
-                            {
-                                if (im[i, j] == null) continue;
-                                im[i, j] = mask switch
-                                {
-                                    0 => (fLine + fCol) % 2 == 0
-                                        ? Functions.InvertPixel(im[i, j])
-                                        : im[i, j],
-                                    1 => (fLine) % 2 == 0
-                                        ? Functions.InvertPixel(im[i, j])
-                                        : im[i, j],
-                                    2 => (fCol) % 3 == 0
-                                        ? Functions.InvertPixel(im[i, j])
-                                        : im[i, j],
-                                    3 => ((fLine + fCol) % 3 == 0)
-                                        ? Functions.InvertPixel(im[i, j])
-                                        : im[i, j],
-                                    4 => ((fLine / 2 + fCol / 3) % 2 == 0)
-                                        ? Functions.InvertPixel(im[i, j])
-                                        : im[i, j],
-                                    5 => ((fLine * fCol) % 2 + (fLine * fCol) % 3 == 0)
-                                        ? Functions.InvertPixel(im[i, j])
-                                        : im[i, j],
-                                    6 => (((fLine * fCol) % 2 + (fLine * fCol) % 3) % 2 == 0)
-                                        ? Functions.InvertPixel(im[i, j])
-                                        : im[i, j],
-                                    7 => (((fLine * fCol) % 3 + (fLine + fCol) % 2) % 2 == 0)
-                                        ? Functions.InvertPixel(im[i, j])
-                                        : im[i, j],
-                                    _ => throw new ArgumentException("Mask pattern not found")
-                                };
-                            }
-                        }
-                    }
-                }
-            }
-
-
-        }
         public static string ReadQrCode(Image im)
         {
             var quietZoneWidth = 0;
@@ -1315,7 +1264,9 @@ namespace Project_Info.QRCode
 
             moduleWidth -= quietZoneWidth;
             var version = (QrWidth / (4 * moduleWidth)) - (17 / 4);
+            
             var QrRead = new QRCode(version, quietZoneWidth, moduleWidth);
+            
             var format = ExtractFormatInfo(im, QrRead);
             var correctionLevel = format[0];
             var mask = Convert.ToInt32(format[1]);
@@ -1332,7 +1283,6 @@ namespace Project_Info.QRCode
                 }
             }
             
-            AddMaskTemp(Data, quietZoneWidth,moduleWidth,mask);
             var data = DataDecoding(Data, quietZoneWidth, moduleWidth);
             var decoData = DecodeStringData(data, correctionLevel, version);
             var stringData = ExtractString(decoData, version);

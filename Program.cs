@@ -22,16 +22,8 @@ namespace Project_Info
         {
             ConsoleFunctions.DisplayAppHeader2();
             QRCode.QRCode.InitializeAlphaNumericTable();
-            //var test = Functions.ReadImage("../../../images/Test.bmp");
-            //var QRTest = new QRCode(1, 0, 1, 5, 1, "NIQUE TA RACE");
-            var qrTest = new QRCode.QRCode("HELLO EST CE QUE TU VEUX QUE JE TE BAISE TA MERE OU PASSSSSSS", 2);
-            ConsoleFunctions.DisplayIntChain(qrTest.WordEncodedData.ToArray());
-            Functions.WriteImage(qrTest, "../../../images/Test7.bmp");
-
-            var decodedQR = new QRReader("../../../images/Test7.bmp");
-            Console.WriteLine();
-            ConsoleFunctions.DisplayIntChain(decodedQR.WordEncodedData.ToArray());
-
+            
+            AIMenu.Invoke();
         }
     }
 }
