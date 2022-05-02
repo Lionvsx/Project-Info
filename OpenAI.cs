@@ -10,7 +10,7 @@ namespace Project_Info
     {
         private static OpenAIAPI _api;
 
-        private const string _apiKey = "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";
+        private const string _apiKey = "";
 
         public static void Login()
         {
@@ -26,7 +26,7 @@ namespace Project_Info
                     $"Toutes les images qui seront utilisées dans le programme doivent être dans le dossier ImageInput, les images sortant du programmes seront dans le dossier ImageOuput à la racine du projet" +
                     $"Voici la liste complète de ce que peut faire le programme : " +
                     $":\nHuman: {input}\nIA:",
-                    200, 0.4, presencePenalty: 0.1, frequencyPenalty: 0.1, stopSequences: "Human:"),
+                    400, 0.7, presencePenalty: 0.1, frequencyPenalty: 0.1, stopSequences: "Human:"),
                 res => Console.Write(res.ToString()));
             Console.WriteLine();
         }

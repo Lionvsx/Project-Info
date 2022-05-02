@@ -22,6 +22,8 @@ namespace Project_Info
         {
             OpenAI.Login();
             ConsoleFunctions.DisplayAppHeader2();
+            Console.WriteLine("(Appuyez sur une touche pour continuer)");
+            Console.ReadKey();
             QRCode.QRCode.InitializeAlphaNumericTable();
             AIMenu.Initialize();
             AIMenu.Invoke();

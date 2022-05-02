@@ -41,7 +41,7 @@ namespace Project_Info.Console_Display
                     {
                         string moduleWidth = "1";
                         string ecLevel = "L";
-                        for (var index = 2; index < input.Length; index++)
+                        for (var index = 1; index < input.Length; index++)
                         {
                             var parameter = input[index];
                             var paramsArray = parameter.Split('=');

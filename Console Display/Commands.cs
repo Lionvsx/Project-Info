@@ -7,7 +7,7 @@ public static class Commands
 {
     public static void CreateQRCommand(string message, string correction)
     {
-        Console.WriteLine("Voulez vous également afficher le Qr Code dans la console ?");
+        Console.WriteLine("Voulez vous également afficher le QR Code dans la console ?");
         var console = Console.ReadLine();
         var consoleWrite = OpenAI.AskForYesOrNo(console);
         
@@ -25,14 +25,9 @@ public static class Commands
     }
     public static void CreateQRCommandAdvanced(string message, string correction, string moduleWidth)
     {
-        Console.WriteLine("Voulez vous également afficher le Qr Code dans la console ?");
+        Console.WriteLine("Voulez vous également afficher le QR Code dans la console ?");
         var console = Console.ReadLine();
-        var consoleWrite = console switch
-        {
-            "Oui" => true,
-            "Non" => false,
-            _ => throw new ArgumentOutOfRangeException(nameof(console))
-        };
+        var consoleWrite = OpenAI.AskForYesOrNo(console);
         var correctionIndex = correction switch
         {
             "L" => 1,
@@ -49,7 +44,7 @@ public static class Commands
 
     public static void ReadQRCommand(string path)
     {
-        Console.WriteLine("Voici le message contenu dans le Qr code : ");
+        Console.WriteLine("Voici le message contenu dans le QR code : ");
         var qr = new QRCode.QRReader(path);
         
     }
