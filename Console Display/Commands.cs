@@ -40,6 +40,7 @@ public static class Commands
         var qrTest = new QRCode.QRCode(message,correctionIndex,moduleWidthIndex );
         if(consoleWrite) ConsoleFunctions.DisplayBoolQRCodeMatrix(qrTest._masksMatrix, qrTest.MaskPattern);
         Functions.WriteImage(qrTest, "../../../images/QRCode.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
 
     public static void ReadQRCommand(string path)
@@ -53,6 +54,7 @@ public static class Commands
         var im = new Image(500, 500);
         var fractale = Functions.Fractal(im);
         Functions.WriteImage(fractale, "../../../images/Fractale.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
 
     public static void CreateHistogrammeCommand(string path)
@@ -60,6 +62,7 @@ public static class Commands
         var im = Functions.ReadImage(path);
         var histo = Functions.Histograme(im);
         Functions.WriteImage(histo, "../../../images/Histogramme.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
 
     public static void MaximizeCommand(string path, string factor)
@@ -67,12 +70,14 @@ public static class Commands
         var im = Functions.ReadImage(path);
         im.Maximize(Convert.ToDouble(factor));
         Functions.WriteImage(im, "../../../images/Agrandi.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
     public static void MinimizeCommand(string path, string factor)
     {
         var im = Functions.ReadImage(path);
         im.Minimize(Convert.ToDouble(factor));
         Functions.WriteImage(im, "../../../images/Retreci.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
 
     public static void RotationCommand(string path, string degre)
@@ -80,6 +85,7 @@ public static class Commands
         var im = Functions.ReadImage(path);
         im.RotateAngle(Convert.ToInt32(degre) * Math.PI / 180);
         Functions.WriteImage(im, "../../../images/Rotation.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
 
     public static void MirrorCOmmand(string path)
@@ -87,6 +93,7 @@ public static class Commands
         var im = Functions.ReadImage(path);
         im.Mirror();
         Functions.WriteImage(im, "../../../images/Miroir.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
 
     public static void ConvertToGreyCommand(string path)
@@ -94,6 +101,7 @@ public static class Commands
         var im = Functions.ReadImage(path);
         im.ConvertToGrey();
         Functions.WriteImage(im, "../../../images/Gris.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
     public static void ConvolutionFilterCommand(string path, string type)
     {
@@ -112,7 +120,8 @@ public static class Commands
             };
             im.ConvolutionFilter(kernel, 1);
         }
-        Functions.WriteImage(im, "../../../images/Miroir.bmp");
+        Functions.WriteImage(im, "../../../images/Convolution.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
 
     public static void HideCommand(string hide, string smol)
@@ -121,6 +130,7 @@ public static class Commands
         var smallImage = Functions.ReadImage(smol);
         var hidden = Functions.Hide(bigImage, smallImage);
         Functions.WriteImage(hidden, "../../../images/Hidden.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
 
     public static void FoundCommand(string path)
@@ -128,6 +138,7 @@ public static class Commands
         var im = Functions.ReadImage(path);
         var found = Functions.Found(im);
         Functions.WriteImage(found, "../../../images/Found.bmp");
+        Console.WriteLine("Votre image a été crée avec success dans le dossier images");
     }
     
     

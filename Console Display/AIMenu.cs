@@ -78,7 +78,6 @@ namespace Project_Info.Console_Display
                         var path = GetPath();
                         if (!path.Item2) return false;
                         Commands.RotationCommand(path.Item1,deg);
-                        
                     }
                     else
                     {

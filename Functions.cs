@@ -60,10 +60,10 @@ namespace Project_Info
                             };
                             break;
                         case 1:
-                            imageData[line, col / 3].Green = myfile[j];
+                            imageData[line, col / 3].Red = myfile[j];
                             break;
                         case 2:
-                            imageData[line, col / 3].Red = myfile[j];
+                            imageData[line, col / 3].Green = myfile[j];
                             break;
                     }
                     ++col;
@@ -149,10 +149,9 @@ namespace Project_Info
                 for (var j = 0; j < im.ImageData.GetLength(1); j++)
                 {
                     file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Blue)));
-                    file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Green)));
                     file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Red)));
-                    
-                    
+                    file.Add(Convert.ToByte(Abs(im.ImageData[i,j].Green)));
+
                 }
 
                 for (var k = 0; k < im.ImageData.GetLength(1)%4; k++)
