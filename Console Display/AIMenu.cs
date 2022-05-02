@@ -72,16 +72,17 @@ namespace Project_Info.Console_Display
                     }
                     return true;
                 case "rotate-image":
+                    var angle = input[2].Split('=')[1];
                     if (input[1] == "get-path")
                     {
                         var path = GetPath();
                         if (!path.Item2) return false;
-                        Commands.RotationCommand(path.Item1,input[2]);
+                        Commands.RotationCommand(path.Item1,angle);
                         
                     }
                     else
                     {
-                        Commands.RotationCommand(input[1],input[2]);
+                        Commands.RotationCommand(input[1],angle);
                         
                     }
                     return true;
@@ -192,7 +193,6 @@ namespace Project_Info.Console_Display
                     else
                     {
                         Commands.CreateHistogrammeCommand(input[1]);
-                        
                     }
                     return true;
                 default:

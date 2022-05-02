@@ -78,7 +78,7 @@ public static class Commands
     public static void RotationCommand(string path, string degre)
     {
         var im = Functions.ReadImage(path);
-        im.RotateAngle(Convert.ToDouble(degre));
+        im.RotateAngle(Convert.ToInt32(degre) * Math.PI / 180);
         Functions.WriteImage(im, "../../../images/Retreci.bmp");
     }
 
