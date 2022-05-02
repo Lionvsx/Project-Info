@@ -10,7 +10,7 @@ namespace Project_Info.QRCode
     {
         private int _correctionLevel;
         private int[] _mode;
-        private bool[,,] _masksMatrix;
+        public bool[,,] _masksMatrix;
         private List<int> _wordEncodedData;
 
 

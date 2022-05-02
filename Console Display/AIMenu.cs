@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using static System.Console;
 
@@ -5,18 +6,24 @@ namespace Project_Info.Console_Display
 {
     public static class AIMenu
     {
-        public static void Invoke()
+        public static void Initialize()
         {
             OpenAI.Login();
-            OpenAI.SteamInConsole("Bonjour"); 
+            OpenAI.SteamInConsole("Ecris un tutoriel afin d'utiliser ce programme"); 
+        }
+        public static void Invoke()
+        {
             while (true)
             {
                 var prompt = ReadLine();
                 var output = OpenAI.GetStringCommand(prompt);
                 if (TryRunCommand(output)) break;
                 OpenAI.SteamInConsole(prompt);
-                WriteLine();
             }
+            
+            WriteLine("Voulez vous fermer le programme?");
+            var choice = ReadLine();
+            if (!OpenAI.AskForYesOrNo(choice)) Invoke();
         }
 
         public static bool TryRunCommand(string[] input)
@@ -26,36 +33,30 @@ namespace Project_Info.Console_Display
                 case "exit":
                     return true;
                 case "create-qrcode":
-                    if (input.Length < 2)
+                    if (input.Length < 3)
                     {
-                        //Commands.CreateQRCommand(input[1]);
+                        Commands.CreateQRCommand(input[1], "L");
                     }
                     else
                     {
-                        var moduleWidth = 1;
+                        string moduleWidth = "1";
                         string ecLevel = "L";
-                        var quietZoneWidth = 2;
                         for (var index = 2; index < input.Length; index++)
                         {
                             var parameter = input[index];
                             var paramsArray = parameter.Split('=');
-                            moduleWidth = paramsArray[0] == "moduleWidth" ? int.Parse(paramsArray[1]) : moduleWidth;
+                            moduleWidth = paramsArray[0] == "moduleWidth" ? paramsArray[1] : moduleWidth;
                             ecLevel = paramsArray[0] == "ecLevel" ? paramsArray[1] : ecLevel;
-                            quietZoneWidth = paramsArray[0] == "quietZoneWidth" ? int.Parse(paramsArray[1]) : quietZoneWidth;
                         }
+                        Commands.CreateQRCommandAdvanced(input[1], ecLevel, moduleWidth);
                     }
                     return true;
                 case "read-qrcode":
                     if (input[1] == "get-path")
                     {
-                        WriteLine("Merci de spécifier un chemin");
-                        var path = ReadLine();
-                        if (path == null)
-                        {
-                            WriteLine("Chemin invalide");
-                            return false;
-                        }
-                        //Commands.ReadQRCommand(path);
+                        var path = GetPath();
+                        if (!path.Item2) return false;
+                        Commands.ReadQRCommand(path.Item1);
                     }
                     else
                     {
@@ -69,7 +70,7 @@ namespace Project_Info.Console_Display
                 case "minimize":
                     return true;
                 case "create-fractale":
-                    //Commands.CreateFractaleCommand();
+                    Commands.CreateFractaleCommand();
                     return true;
                 case "hide":
                     return true;
@@ -84,6 +85,16 @@ namespace Project_Info.Console_Display
                 default:
                     return false;
             }
+        }
+
+        private static (string, bool) GetPath()
+        {
+            WriteLine("Merci de spécifier un chemin");
+            var path = ReadLine();
+            if (path != null) return (path, true);
+            WriteLine("Chemin invalide");
+            return ("", false);
+
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Project_Info
             OpenAI.Login();
             ConsoleFunctions.DisplayAppHeader2();
             QRCode.QRCode.InitializeAlphaNumericTable();
-            
+            AIMenu.Initialize();
             AIMenu.Invoke();
         }
     }

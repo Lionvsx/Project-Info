@@ -20,7 +20,7 @@ public static class Commands
             _ => throw new ArgumentOutOfRangeException(nameof(correction))
         };
         var qrTest = new QRCode.QRCode(message,correctionIndex );
-        if(consoleWrite) ConsoleFunctions.DisplayQRCode(qrTest);
+        if(consoleWrite) ConsoleFunctions.DisplayBoolQRCodeMatrix(qrTest._masksMatrix, qrTest.MaskPattern);
         Functions.WriteImage(qrTest, "../../../images/QRCode.bmp");
     }
     public static void CreateQRCommandAdvanced(string message, string correction, string moduleWidth)
