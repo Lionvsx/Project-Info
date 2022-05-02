@@ -20,6 +20,7 @@ namespace Project_Info
     {
         static void Main()
         {
+            OpenAI.Login();
             ConsoleFunctions.DisplayAppHeader2();
             QRCode.QRCode.InitializeAlphaNumericTable();
             //var test = Functions.ReadImage("../../../images/Test.bmp");
