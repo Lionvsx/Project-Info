@@ -10,7 +10,7 @@ namespace Project_Info
     {
         private static OpenAIAPI _api;
 
-        private const string _apiKey = "";
+        private const string _apiKey = "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";
 
         public static void Login()
         {

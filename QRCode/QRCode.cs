@@ -66,12 +66,13 @@ namespace Project_Info.QRCode
             Functions.FillImageWhite(ImageData);
             AddMask();
         }
-
-        private QRCode(int version, int quietZoneWidth, int moduleWidth)
+        public QRCode(string message, int correctionLevel , int moduleWidth)
         {
-            Version = version;
-            QuietZoneWidth = quietZoneWidth;
+            _correctionLevel = correctionLevel;
+            QuietZoneWidth = 15;
             ModuleWidth = moduleWidth;
+            
+            GetVersionFromString(message);
             
             var borderSize = (8 * 2 + (4 * Version + 1)) * ModuleWidth + 2 * QuietZoneWidth;
             ImageData = new Pixel[borderSize, borderSize];
@@ -80,10 +81,17 @@ namespace Project_Info.QRCode
             Width = borderSize;
             Offset = 54;
             BitRgb = 24;
+
+            CreateBestMaskQRCode(message);
             
-            CreateEmptyQrCode();
+            AddFormatInformation();
+
+            DataEncoding();
+            Functions.FillImageWhite(ImageData);
+            AddMask();
         }
 
+        
         protected QRCode()
         {
         }
@@ -1243,280 +1251,7 @@ namespace Project_Info.QRCode
                 AlphanumericTable.Add(Convert.ToChar(args[0]), Convert.ToInt32(args[1]));
             }
         }
-        public static string ReadQrCode(Image im)
-        {
-            var quietZoneWidth = 0;
-            if (im.ImageData[quietZoneWidth, quietZoneWidth] != new Pixel(255, 255, 255))
-            {
-                while (im.ImageData[quietZoneWidth, quietZoneWidth].Red >0)
-                {
-                    quietZoneWidth++;
-                }
-            }
-    
-            var QrWidth = im.Width - (2 * quietZoneWidth);
-            var QrHeight = im.Height - (2 * quietZoneWidth);
-            var moduleWidth = quietZoneWidth;
-            while (im.ImageData[moduleWidth, moduleWidth].Red < 255)
-            {
-                moduleWidth++;
-            }
 
-            moduleWidth -= quietZoneWidth;
-            var version = (QrWidth / (4 * moduleWidth)) - (17 / 4);
-            
-            var QrRead = new QRCode(version, quietZoneWidth, moduleWidth);
-            
-            var format = ExtractFormatInfo(im, QrRead);
-            var correctionLevel = format[0];
-            var mask = Convert.ToInt32(format[1]);
-            QrRead.MaskPattern = Convert.ToInt32(format[1]);
-            var Data = new Pixel[QrWidth, QrWidth];
-            for (var x = 0; x < QrWidth; x++)
-            {
-                for (var y = 0; y < QrWidth; y++)
-                {
-                    if (QrRead.ImageData[x+quietZoneWidth, y+quietZoneWidth] != im.ImageData[x + quietZoneWidth, y + quietZoneWidth])
-                    {
-                        Data[x, y] = im.ImageData[x + quietZoneWidth, y + quietZoneWidth];
-                    }
-                }
-            }
-            
-            var data = DataDecoding(Data, quietZoneWidth, moduleWidth);
-            var decoData = DecodeStringData(data, correctionLevel, version);
-            var stringData = ExtractString(decoData, version);
-            return stringData;
-
-        }
-
-        public static string ExtractString(int[] byteArray, int version)
-        {
-            
-            var mode = new[] {0, 0, 1, 0};
-            var desiredLength = version < 10 ? 9 : version < 27 ? 11 : 13;
-            var word = new List<string>();
-            var bitArray = Functions.ConvertByteArrayToBitArray(byteArray);
-            
-            var alphanumericTable = Functions.ReadFile("../../../QRCode/alphanumericTable.txt").ToArray();
-            
-            for (var index = mode.Length + desiredLength; index < bitArray.Length; index+=11)
-            {
-                int value = 0;
-
-                for (int i = 10; i >=0; i--)
-                {
-                    if (bitArray[i]==1)
-                        value += Convert.ToInt32(Math.Pow(2, i));
-                }
-                var infosH =alphanumericTable[value/45].Split(";");
-                var infosL =alphanumericTable[value%45].Split(";");
-                var highValue = infosH[0];
-                var lowValue = infosL[0];
-                word.Add(highValue);
-                word.Add(lowValue);
-                
-            }
-            var messageStr = string.Join("",word.ToArray());
-            return messageStr;
-
-        }
-        public static string[] ExtractFormatInfo(Image im, QRCode QrRead)
-        {
-            var fixedLine = 8 * QrRead.ModuleWidth + QrRead.QuietZoneWidth;
-            var movingCol = 0 + QrRead.QuietZoneWidth;
-            int[] formatData = new int[15];
-            var skip1 = false;
-            var skip2 = false;
-            var temp = 0;
-            for (var i = 0; i < formatData.Length; i++)
-            {
-                if (movingCol+i*QrRead.ModuleWidth == 9 * QrRead.ModuleWidth + QrRead.QuietZoneWidth && skip1 == false)
-                {
-                    movingCol = im.ImageData.GetLength(1)- 7 * QrRead.ModuleWidth - QrRead.QuietZoneWidth;
-                    skip1 = true;
-                    temp = i;
-
-                }
-                if (movingCol+i*QrRead.ModuleWidth == 6 * QrRead.ModuleWidth + QrRead.QuietZoneWidth && skip2 == false)
-                {
-                    movingCol += QrRead.ModuleWidth;
-                    skip2 = true;
-                    
-
-                }
-
-                if (im.ImageData[fixedLine, movingCol + (i-temp)*QrRead.ModuleWidth].Red == 255) formatData[i] = 0;
-                else formatData[i] = 1;
-                
-                
-            }
-
-            var ErMask = new string[2];
-            var data = string.Join("",formatData);
-            var lines = Functions.ReadFile("../../../QRCode/qrFormat.txt").ToArray();
-            for (var i = 0; i < lines.Length; i++)
-            {
-                var infos = lines[i].Split(";");
-                if (data == infos[2])
-                {
-                    ErMask[0] = infos[0];
-                    ErMask[1] = infos[1];
-                }
-            }
-
-            return ErMask;
-
-        }
-
-        public static int[] DecodeStringData(List<int> data, string correctionLevel, int version)
-        {
-            var lines = Functions.ReadFile("../../../QRCode/qrCodeDataLength.txt").ToArray();
-            var startIndex = correctionLevel switch
-            {
-                "L" => 3,
-                "M" => 2,
-                "Q" => 1,
-                "H" => 0,
-                _ => throw new ArgumentOutOfRangeException(nameof(_correctionLevel))
-            };
-            
-            
-            var infos = lines[version*4-1-startIndex].Split(";");
-            var result = new int[infos.Length-2];
-            for (var i = 1; i < infos.Length-1; i++)
-            {
-                result[i - 1] = Convert.ToInt32(infos[i]);
-            }
-            
-            var numberDataCodewords = result[0];
-            var numberEcCodewords = result[1] * result[2] + result[1] * result[4];
-        
-            var numberBlocksGroup1 = result[2];
-            var numberBlocksGroup2 = result[4];
-        
-            var numberEcPerBlock = result[1];
-            
-            var numberDataPerBlockGrp1 = result[3];
-            var numberDataPerBlockGrp2= result[5];
-            
-            var numberDataPerBlockArray = new[] {numberDataPerBlockGrp1, numberDataPerBlockGrp2};
-            
-            var maxNumberDataPerBlock = Math.Max(numberDataPerBlockGrp1, numberDataPerBlockGrp2);
-
-            data = Functions.ConvertBitArrayToByteArray(data.ToArray()).ToList();
-            
-            var decodedDataMatrix = new int[numberBlocksGroup1 + numberBlocksGroup2, maxNumberDataPerBlock];
-
-            var dataIndex = 0;
-            for (var j = 0; j < decodedDataMatrix.GetLength(1); j++)
-            {
-                for (var i = 0; i < decodedDataMatrix.GetLength(0); i++)
-                {
-                    decodedDataMatrix[i, j] = data[dataIndex];
-                    var currentNumberDataPerBlock = numberDataPerBlockArray[j / numberDataPerBlockGrp1];
-                    if (i >= currentNumberDataPerBlock)
-                    {
-                        decodedDataMatrix[i, j] = -1;
-                        continue;
-                    }
-                    dataIndex++;
-                }
-            }
-            
-            var message = new List<int>();
-            for (var x = 0; x < decodedDataMatrix.GetLength(0); x++)
-            {
-                for (var y = 0; y < decodedDataMatrix.GetLength(1); y++)
-                {
-                    message.Add(decodedDataMatrix[x,y]);
-                }
-            }
-
-            return message.ToArray();
-
-        }
-        public static List<int> DataDecoding(Pixel[,] data, int quietZoneWidth, int moduleWidth)
-        {
-            var upp = true;
-            var chain = new List<int>();
-            var skip = false;
-                for (var col = data.GetLength(1) - 1-quietZoneWidth; col >quietZoneWidth; col -=2*moduleWidth)
-                {
-                    if (upp)
-                    {
-                        for (var line = data.GetLength(0) - 1-quietZoneWidth; line >= quietZoneWidth; line-=moduleWidth)
-                        {
-                            if (col <= 7 * moduleWidth + quietZoneWidth && skip == false)
-                            {
-                                col -= moduleWidth;
-                                skip = true;
-                            }
-
-                            if (data[line, col] != null)
-                            {
-                                if (data[line, col].Red == 255)
-                                {
-                                    chain.Add(0);
-                                }
-                                if (data[line, col].Red == 0)
-                                {
-                                    chain.Add(1);
-                                }
-                            }
-
-                            if (data[line, col-moduleWidth] != null)
-                            {
-                                if (data[line, col-moduleWidth].Red == 255)
-                                {
-                                    chain.Add(0);
-                                }
-                                if (data[line, col-moduleWidth].Red == 0)
-                                {
-                                    chain.Add(1);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (var line = quietZoneWidth; line <=data.GetLength(0)-1-quietZoneWidth; line+= moduleWidth)
-                        {
-                            if (col <= 7 * moduleWidth + quietZoneWidth && skip == false)
-                            {
-                                col -= moduleWidth;
-                                skip = true;
-                            }
-                            if (data[line, col] != null)
-                            {
-
-                                if (data[line, col].Red == 255)
-                                {
-                                    chain.Add(0);
-                                }
-                                if (data[line, col].Red == 0)
-                                {
-                                    chain.Add(1);
-                                }
-                            }
-                            if (data[line, col-moduleWidth] != null)
-                            {
-                                if (data[line, col-moduleWidth].Red == 255)
-                                {
-                                    chain.Add(0);
-                                }
-                                if (data[line, col-moduleWidth].Red == 0)
-                                {
-                                    chain.Add(1);
-                                }
-                            }
-                        }
-                    }
-                    upp = !upp;
-                }
-                return chain;
-        }
-        
         public void InitFunctionModulesMatrix()
         {
             IsFunctionModule = new bool[Width, Height];
