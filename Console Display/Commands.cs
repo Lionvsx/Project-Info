@@ -65,13 +65,13 @@ public static class Commands
     public static void MaximizeCommand(string path, string factor)
     {
         var im = Functions.ReadImage(path);
-        im.Maximize(Convert.ToInt32(factor));
+        im.Maximize(Convert.ToDouble(factor));
         Functions.WriteImage(im, "../../../images/Agrandi.bmp");
     }
     public static void MinimizeCommand(string path, string factor)
     {
         var im = Functions.ReadImage(path);
-        im.Minimize(Convert.ToInt32(factor));
+        im.Minimize(Convert.ToDouble(factor));
         Functions.WriteImage(im, "../../../images/Retreci.bmp");
     }
 
@@ -79,7 +79,7 @@ public static class Commands
     {
         var im = Functions.ReadImage(path);
         im.RotateAngle(Convert.ToInt32(degre) * Math.PI / 180);
-        Functions.WriteImage(im, "../../../images/Retreci.bmp");
+        Functions.WriteImage(im, "../../../images/Rtation.bmp");
     }
 
     public static void MirrorCOmmand(string path)

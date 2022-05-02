@@ -72,47 +72,47 @@ namespace Project_Info.Console_Display
                     }
                     return true;
                 case "rotate-image":
-                    var angle = input[2].Split('=')[1];
+                    var deg = input[2].Split("=")[1];
                     if (input[1] == "get-path")
                     {
                         var path = GetPath();
                         if (!path.Item2) return false;
-                        Commands.RotationCommand(path.Item1,angle);
+                        Commands.RotationCommand(path.Item1,deg);
                         
                     }
                     else
                     {
-                        Commands.RotationCommand(input[1],angle);
+                        Commands.RotationCommand(input[1],deg);
                         
                     }
                     return true;
                 case "maximize":
-                   
+                   var factor = input[2].Split("=")[1];
                     if (input[1] == "get-path")
                     {
                         var path = GetPath();
                         if (!path.Item2) return false;
-                        Commands.MaximizeCommand(path.Item1,input[2]);
+                        Commands.MaximizeCommand(path.Item1,factor);
                         
                     }
                     else
                     {
-                        Commands.MaximizeCommand(input[1],input[2]);
+                        Commands.MaximizeCommand(input[1],factor);
                         
                     }
                     return true;
                 case "minimize":
-                    
+                    var ty = input[2].Split("=")[1];
                     if (input[1] == "get-path")
                     {
                         var path = GetPath();
                         if (!path.Item2) return false;
-                        Commands.MinimizeCommand(path.Item1,input[2]);
+                        Commands.MinimizeCommand(path.Item1,ty);
                         
                     }
                     else
                     {
-                        Commands.MinimizeCommand(input[1],input[2]);
+                        Commands.MinimizeCommand(input[1],ty);
                         
                     }
                     return true;
@@ -120,18 +120,18 @@ namespace Project_Info.Console_Display
                     Commands.CreateFractaleCommand();
                     return true;
                 case "hide":
-                    
+                    var typ = input[2].Split("=")[1];
                     if (input[1] == "get-path")
                     {
                         var path = GetPath();
                         if (!path.Item2) return false;
-                        Commands.RotationCommand(path.Item1,input[2]);
+                        Commands.RotationCommand(path.Item1,typ);
                         
                     }
                     else
                     {
                         
-                        Commands.RotationCommand(input[1],input[2]);
+                        Commands.RotationCommand(input[1],typ);
                         
                     }
                     return true;
@@ -167,17 +167,17 @@ namespace Project_Info.Console_Display
                     }
                     return true;
                 case "convolution-filter":
-                    
+                    var type = input[2].Split("=")[1];
                     if (input[1] == "get-path")
                     {
                         var path = GetPath();
                         if (!path.Item2) return false;
-                        Commands.ConvolutionFilterCommand(path.Item1,input[2]);
+                        Commands.ConvolutionFilterCommand(path.Item1,type);
                         
                     }
                     else
                     {
-                        Commands.ConvolutionFilterCommand(input[1],input[2]);
+                        Commands.ConvolutionFilterCommand(input[1],type);
                         
                     }
                     return true;
