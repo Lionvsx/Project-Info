@@ -60,27 +60,132 @@ namespace Project_Info.Console_Display
                     }
                     else
                     {
-                        //Commands.ReadQRCommand(input[1]);
+                        Commands.ReadQRCommand(input[1]);
                     }
                     return true;
                 case "rotate-image":
+                    if (input[1] == "get-path")
+                    {
+                        var path = GetPath();
+                        if (!path.Item2) return false;
+                        Commands.RotationCommand(path.Item1,input[2]);
+                        
+                    }
+                    else
+                    {
+                        Commands.RotationCommand(input[1],input[2]);
+                        
+                    }
                     return true;
                 case "maximize":
+                   
+                    if (input[1] == "get-path")
+                    {
+                        var path = GetPath();
+                        if (!path.Item2) return false;
+                        Commands.MaximizeCommand(path.Item1,input[2]);
+                        
+                    }
+                    else
+                    {
+                        Commands.MaximizeCommand(input[1],input[2]);
+                        
+                    }
                     return true;
                 case "minimize":
+                    
+                    if (input[1] == "get-path")
+                    {
+                        var path = GetPath();
+                        if (!path.Item2) return false;
+                        Commands.MinimizeCommand(path.Item1,input[2]);
+                        
+                    }
+                    else
+                    {
+                        Commands.MinimizeCommand(input[1],input[2]);
+                        
+                    }
                     return true;
                 case "create-fractale":
                     Commands.CreateFractaleCommand();
                     return true;
                 case "hide":
+                    
+                    if (input[1] == "get-path")
+                    {
+                        var path = GetPath();
+                        if (!path.Item2) return false;
+                        Commands.RotationCommand(path.Item1,input[2]);
+                        
+                    }
+                    else
+                    {
+                        
+                        Commands.RotationCommand(input[1],input[2]);
+                        
+                    }
                     return true;
                 case "found":
+                    
+                    if (input[1] == "get-path")
+                    {
+                        var path = GetPath();
+                        if (!path.Item2) return false;
+                        Commands.FoundCommand(path.Item1);
+                        
+                    }
+                    else
+                    {
+                        Commands.FoundCommand(input[1]);
+                        
+                    }
                     return true;
+                    
                 case "convert-to-grey":
+                    
+                    if (input[1] == "get-path")
+                    {
+                        var path = GetPath();
+                        if (!path.Item2) return false;
+                        Commands.ConvertToGreyCommand(path.Item1);
+                        
+                    }
+                    else
+                    {
+                        Commands.ConvertToGreyCommand(input[1]);
+                        
+                    }
                     return true;
                 case "convolution-filter":
+                    
+                    if (input[1] == "get-path")
+                    {
+                        var path = GetPath();
+                        if (!path.Item2) return false;
+                        Commands.ConvolutionFilterCommand(path.Item1,input[2]);
+                        
+                    }
+                    else
+                    {
+                        Commands.ConvolutionFilterCommand(input[1],input[2]);
+                        
+                    }
                     return true;
                 case "create-histogramme":
+                    
+                    if (input[1] == "get-path")
+                    {
+                        var path = GetPath();
+                        if (!path.Item2) return false;
+                        Commands.CreateHistogrammeCommand(path.Item1);
+                        
+                    }
+                    else
+                    {
+                        Commands.CreateHistogrammeCommand(input[1]);
+                        
+                    }
                     return true;
                 default:
                     return false;
