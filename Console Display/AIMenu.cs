@@ -120,20 +120,13 @@ namespace Project_Info.Console_Display
                     Commands.CreateFractaleCommand();
                     return true;
                 case "hide":
-                    var typ = input[2].Split("=")[1];
-                    if (input[1] == "get-path")
-                    {
-                        var path = GetPath();
-                        if (!path.Item2) return false;
-                        Commands.RotationCommand(path.Item1,typ);
+                    var smol = input[2].Split("=")[0];
+                    var big = input[2].Split("=")[1];
+                    
                         
-                    }
-                    else
-                    {
+                    Commands.HideCommand(big,smol);
                         
-                        Commands.RotationCommand(input[1],typ);
-                        
-                    }
+                    
                     return true;
                 case "found":
                     
